@@ -1,0 +1,44 @@
+# @FORMAT
+
+ENVIRONMENT:
+    ENV: production
+    APP: 'web'
+    VERSION: '0.0.1'
+    
+SERVER:
+    PORT: 3000
+
+MONGODB:
+    HOST: '103.83.131.248'
+    PORT: 27017
+    TLSENABLED: false
+    DATABASE: 'practionweb'
+    USERNAME: 'praction'
+    PASSWORD: 'Lcmanager123'
+
+LOGGER:
+    LOGLEVEL: debug
+    CONSOLE: true
+    ELKENABLED: false
+    ELKHOST: '127.0.0.1'
+    ELKPORT: '9200'
+    ELKSEARCHINDEX: 'Quantum-Auth'
+
+
+AUTH:
+    SECRET: "ZZDODPOGNVSMEK7WOJ2JZS87PQGBZMRSECCMZ6GDV7FPWMSTCSAAYPP4KBVFAMPRGQIAIZVXNEWJX2SBQVN4BAXCQNGHY93Y8JEM"
+    AUTH_KEY : "kwV3T4gEjFfxCQfS0wQA064CeXSkuhZc8a9XM6mCZxpsPmoaW6"
+
+MSG91:
+    AUTHKEY: "367770AvkZLlCtyyqc615297ddP1"
+    TEMPLATEID: "615297a6d849b34049795ba5"
+
+
+POSTAL:
+    SERVERURL: "https://postal.praction.in"
+    APIKEY: "kWYipQcEtlEgVeqRui7hf6Rq"
+    EMAILFORM: "noreply@praction.in"
+
+GDRIVE:
+    CLIENTID: "806512879309-1sar60125fvu9idfiahfpvcmmg7opqmt.apps.googleusercontent.com"
+    CLIENETSECRET: "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" 
