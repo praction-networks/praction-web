@@ -44,6 +44,7 @@ func CreateBlogComments(ctx context.Context, blogComments models.Comments) error
 	blogComments.CreatedAt = time.Now()
 	blogComments.IsActive = true
 	blogComments.UpdatedAt = time.Now()
+	blogComments.IsDeleted = false
 
 	// Insert the user into the MongoDB database
 	CommentID, err := insertBlogCommentsIntoDB(ctx, blogComments)
