@@ -1,28 +1,17 @@
 package validator
 
 import (
-	"regexp"
-
 	"github.com/go-playground/validator/v10"
-	"github.com/microcosm-cc/bluemonday"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
 )
 
 // ValidateBlog validates the Blog model and returns detailed errors
-func ValidateBlog(blog *models.Blog) []response.ErrorDetail {
+func ValidateBlogComments(blog *models.Comments) []response.ErrorDetail {
 	var validationErrors []response.ErrorDetail
 
 	// Initialize validator instance
 	v := validator.New()
-
-	blog.BlogDescription = SanitizeHTML(blog.BlogDescription)
-
-	// Register custom validation for "slug"
-	v.RegisterValidation("slug", func(fl validator.FieldLevel) bool {
-		re := regexp.MustCompile(`^[a-z0-9]+(?:-[a-z0-9]+)*$`)
-		return re.MatchString(fl.Field().String())
-	})
 
 	// Perform validation
 	err := v.Struct(blog)
@@ -36,16 +25,18 @@ func ValidateBlog(blog *models.Blog) []response.ErrorDetail {
 				message = e.Field() + " must be at least " + e.Param() + " characters"
 			case "max":
 				message = e.Field() + " must not exceed " + e.Param() + " characters"
-			case "url":
-				message = e.Field() + " must be a valid URL"
-			case "uuid4":
-				message = e.Field() + " is not a valid uuid v4"
+			case "numeric":
+				message = e.Field() + " must be a digit only"
 			case "gte":
 				message = e.Field() + " must be greater than or equal to " + e.Param()
-			case "oneWord":
-				message = e.Field() + " must not contain spaces"
-			case "dive":
-				message = e.Field() + " must have valid nested elements"
+			case "mongodb":
+				message = e.Field() + " must be a valid MongoDB ObjectID"
+			case "len":
+				message = e.Field() + " must be exectly " + e.Param() + "digit long"
+			case "uuid4":
+				message = e.Field() + " is not a valid uuid v4"
+			case "email":
+				message = e.Field() + " must ve a valid email"
 			default:
 				message = e.Field() + " validation failed on the '" + e.Tag() + "' tag"
 			}
@@ -57,9 +48,4 @@ func ValidateBlog(blog *models.Blog) []response.ErrorDetail {
 	}
 
 	return validationErrors
-}
-
-func SanitizeHTML(input string) string {
-	policy := bluemonday.UGCPolicy()
-	return policy.Sanitize(input)
 }

@@ -3,29 +3,32 @@ package models
 import (
 	"errors"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type Job struct {
-	Title               string      `json:"title" bson:"title" validate:"required,max=100"`
-	UUID                string      `json:"-" bson:"uuid"`
-	JobID               string      `json:"jobID" bson:"jobID"`
-	OpenPosition        int64       `json:"openPosition" bson:"openPosition" validate:"required"`
-	Description         string      `json:"description" bson:"description" validate:"required"`
-	KeyResponsibilities []string    `json:"keyResponsibilities" bson:"keyResponsibilities" validate:"required,min=1,max=30,dive"`
-	Requirements        []string    `json:"requirements" bson:"requirements" validate:"required,min=1,max=30,dive"`
-	Department          string      `json:"department,omitempty" bson:"department,omitempty"`                                         // Optional department
-	JobType             string      `json:"jobType" bson:"jobType" validate:"required,oneof=Full-Time Part-Time Internship Contract"` // Type of job
-	Location            []string    `json:"location" bson:"location" validate:"required"`                                             // Job location
-	Remote              bool        `json:"remote,omitempty" bson:"remote,omitempty"`                                                 // Whether the job can be done remotely
-	Qualifications      []string    `json:"qualifications" bson:"qualifications" validate:"required,min=1,dive"`                      // Required qualifications
-	Experience          string      `json:"experience,omitempty" bson:"experience,omitempty"`                                         // Optional experience details
-	MustHaveSkills      []string    `json:"mustHaveSkills,omitempty" bson:"mustHaveSkills" validate:"min=1,max=20,dive"`
-	GoodToHaveSkills    []string    `json:"goodToHaveSkills,omitempty" bson:"goodToHaveSkills" validate:"min=1,max=20,dive"`
-	Salary              SalaryRange `json:"salary,omitempty" bson:"salary,omitempty"`                                        // Optional salary range
-	PostedBy            string      `json:"postedBy,omitempty" bson:"postedBy,omitempty"`                                    // Name or ID of the person posting
-	PostingDate         time.Time   `json:"postingDate,omitempty" bson:"postingDate,omitempty"`                              // Auto-generated posting date
-	ApplicationDeadline CustomDate  `json:"applicationDeadline,omitempty" bson:"applicationDeadline,omitempty"`              // Optional application deadline
-	Status              string      `json:"status,omitempty" bson:"status,omitempty" validate:"omitempty,oneof=Open Closed"` // Job status
+	ID                  primitive.ObjectID `json:"id" bson:"_id"`
+	Title               string             `json:"title" bson:"title" validate:"required,max=100"`
+	UUID                string             `json:"-" bson:"uuid"`
+	JobID               string             `json:"jobID" bson:"jobID"`
+	OpenPosition        int64              `json:"openPosition" bson:"openPosition" validate:"required"`
+	Description         string             `json:"description" bson:"description" validate:"required"`
+	KeyResponsibilities []string           `json:"keyResponsibilities" bson:"keyResponsibilities" validate:"required,min=1,max=30,dive"`
+	Requirements        []string           `json:"requirements" bson:"requirements" validate:"required,min=1,max=30,dive"`
+	Department          string             `json:"department,omitempty" bson:"department,omitempty"`                                         // Optional department
+	JobType             string             `json:"jobType" bson:"jobType" validate:"required,oneof=Full-Time Part-Time Internship Contract"` // Type of job
+	Location            []string           `json:"location" bson:"location" validate:"required"`                                             // Job location
+	Remote              bool               `json:"remote,omitempty" bson:"remote,omitempty"`                                                 // Whether the job can be done remotely
+	Qualifications      []string           `json:"qualifications" bson:"qualifications" validate:"required,min=1,dive"`                      // Required qualifications
+	Experience          string             `json:"experience,omitempty" bson:"experience,omitempty"`                                         // Optional experience details
+	MustHaveSkills      []string           `json:"mustHaveSkills,omitempty" bson:"mustHaveSkills" validate:"min=1,max=20,dive"`
+	GoodToHaveSkills    []string           `json:"goodToHaveSkills,omitempty" bson:"goodToHaveSkills" validate:"min=1,max=20,dive"`
+	Salary              SalaryRange        `json:"salary,omitempty" bson:"salary,omitempty"`                                        // Optional salary range
+	PostedBy            string             `json:"postedBy,omitempty" bson:"postedBy,omitempty"`                                    // Name or ID of the person posting
+	PostingDate         time.Time          `json:"postingDate,omitempty" bson:"postingDate,omitempty"`                              // Auto-generated posting date
+	ApplicationDeadline CustomDate         `json:"applicationDeadline,omitempty" bson:"applicationDeadline,omitempty"`              // Optional application deadline
+	Status              string             `json:"status,omitempty" bson:"status,omitempty" validate:"omitempty,oneof=Open Closed"` // Job status
 }
 
 // SalaryRange represents the minimum and maximum salary for a job posting
