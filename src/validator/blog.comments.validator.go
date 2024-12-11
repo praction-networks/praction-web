@@ -29,7 +29,7 @@ func ValidateBlogComments(blog *models.Comments) []response.ErrorDetail {
 				message = e.Field() + " must be a digit only"
 			case "gte":
 				message = e.Field() + " must be greater than or equal to " + e.Param()
-			case "mongodb":
+			case "objectid":
 				message = e.Field() + " must be a valid MongoDB ObjectID"
 			case "len":
 				message = e.Field() + " must be exectly " + e.Param() + "digit long"

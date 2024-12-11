@@ -80,6 +80,33 @@ func GetAllBlogService(ctx context.Context, params utils.PaginationParams) ([]mo
 		return nil, fmt.Errorf("error decoding users: %w", err)
 	}
 
-	logger.Info(fmt.Sprintf("Retrieved %d user(s) successfully with pagination and sorting.", len(blogs)))
+	// Fetch comments for each blog based on the Comment IDs
+	// Now we will retrieve the comments for each blog
+	for i, blog := range blogs {
+		// Ensure CommentsList is not empty
+		if len(blog.CommentsList) > 0 {
+			commentCollection := client.Database("practionweb").Collection("BlogComments")
+			commentFilter := bson.M{"_id": bson.M{"$in": blog.CommentsList}}
+
+			// Fetch the comments by ObjectIDs from CommentsList
+			commentCursor, err := commentCollection.Find(ctx, commentFilter)
+			if err != nil {
+				logger.Error(fmt.Sprintf("Error retrieving comments for blog %v: %v", blog.ID, err))
+				return nil, fmt.Errorf("error retrieving comments: %w", err)
+			}
+			defer commentCursor.Close(ctx)
+
+			var comments []models.Comments
+			if err = commentCursor.All(ctx, &comments); err != nil {
+				logger.Error(fmt.Sprintf("Error decoding comments: %v", err))
+				return nil, fmt.Errorf("error decoding comments: %w", err)
+			}
+
+			// Add the comments to the blog's Comments field
+			blogs[i].Comments = comments
+		}
+	}
+
+	logger.Info(fmt.Sprintf("Retrieved %d blog(s) successfully with pagination and sorting and filters.", len(blogs)))
 	return blogs, nil
 }

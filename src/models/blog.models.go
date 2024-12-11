@@ -8,7 +8,7 @@ import (
 
 // BlogCategory represents the structure for blog categories
 type BlogCategory struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id"`
+	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Name        string             `json:"name" bson:"name" validate:"required,min=2,max=100"`
 	UUID        string             `json:"uuid" bson:"uuid"`
 	Slug        string             `json:"slug" bson:"slug" validate:"required,slug"`
@@ -22,7 +22,7 @@ type BlogCategory struct {
 
 // BlogTag represents the structure for blog tags
 type BlogTag struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id"`
+	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Name        string             `json:"name" bson:"name" validate:"required,min=2,max=50,oneWord"`
 	UUID        string             `json:"uuid" bson:"uuid"`
 	Slug        string             `json:"slug" bson:"slug" validate:"required,slug"`
@@ -35,7 +35,7 @@ type BlogTag struct {
 
 // Post represents the structure for a blog post
 type Blog struct {
-	ID                  primitive.ObjectID   `json:"id" bson:"_id"`
+	ID                  primitive.ObjectID   `json:"id" bson:"_id,omitempty"`
 	BlogTitle           string               `json:"blogTitle" bson:"blogTitle" validate:"required,min=2,max=100"`
 	UUID                string               `json:"uuid,omitempty" bson:"uuid,omitempty"`
 	Slug                string               `json:"slug" bson:"slug" validate:"required,slug"`
@@ -46,7 +46,7 @@ type Blog struct {
 	Tag                 []string             `json:"tag" bson:"tag" validate:"required,dive,alphanumunicode"`
 	Category            []string             `json:"category" bson:"category" validate:"required,dive"`
 	MetaDescription     string               `json:"metaDescription,omitempty" bson:"metaDescription,omitempty" validate:"omitempty,max=160"`
-	MetaKeywords        []string             `json:"metaKeywords,omitempty" bson:"metaKeywords,omitempty" validate:"omitempty,dive,alphanumunicode"`
+	MetaKeywords        []string             `json:"metaKeywords,omitempty" bson:"metaKeywords,omitempty" validate:"omitempty,dive,max=30"`
 	EmbeddedMedia       []string             `json:"embeddedMedia,omitempty" bson:"embeddedMedia,omitempty" validate:"omitempty,dive,http_url"`
 	Summary             string               `json:"summary,omitempty" bson:"summary,omitempty" validate:"omitempty,max=250"`
 	FeatureImage        string               `json:"featureImage,omitempty" bson:"featureImage,omitempty" validate:"omitempty,uuid4"`
@@ -59,18 +59,18 @@ type Blog struct {
 	IsApproved          bool                 `json:"isApproved" bson:"isApproved"`
 	IsActive            bool                 `json:"-" bson:"isActive"`
 	IsDeleted           bool                 `json:"-" bson:"isDeleted"`
-	CommentsList        []primitive.ObjectID `json:"comments" bson:"comments" validate:"omitempty"`
+	CommentsList        []primitive.ObjectID `json:"commentsList" bson:"commentsList"`
+	Comments            []Comments           `json:"comments" bson:"comments"`
 }
 
 // Comments represents the structure for comments on a post
 type Comments struct {
-	ID          primitive.ObjectID `json:"id" bson:"_id"`
-	BlogID      primitive.ObjectID `json:"blogID" bson:"-" validate:"required,mongodb"`
+	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UUID        string             `json:"uuid" bson:"uuid"`
 	Name        string             `json:"name" bson:"name" validate:"required,min=2,max=50"`
 	Mobile      string             `json:"mobile" bson:"mobile" validate:"required,numeric,len=10"`
 	Email       string             `json:"email" bson:"email" validate:"required,email"`
-	Description string             `json:"description" bson:"description" validate:"required,min=1,max=100"`
+	Description string             `json:"description" bson:"description" validate:"required,min=1,max=250"`
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
 	IsActive    bool               `json:"-" bson:"IsActive"`
@@ -78,7 +78,7 @@ type Comments struct {
 }
 
 type Image struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id"`
+	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UUID      string             `json:"uuid" bson:"uuid"`
 	FileID    string             `json:"fileID" bson:"fileID"`
 	MimeType  string             `json:"mimeType" bson:"mimeType"`

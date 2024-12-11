@@ -82,6 +82,17 @@ func InitializeMongo(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while creating indexes: %v", err)
 	}
+
+	err = CreateIndexesForServiceArea(ctx, cfg.DBName, "ServiceArea")
+
+	if err != nil {
+		return fmt.Errorf("error while creating indexes: %v", err)
+	}
+	err = CreateIndexesForBlogComments(ctx, cfg.DBName, "BlogComments")
+
+	if err != nil {
+		return fmt.Errorf("error while creating indexes: %v", err)
+	}
 	err = createUniqueIndexesForUserReferenceCollection(ctx, cfg.DBName, "UserReferal")
 
 	if err != nil {
@@ -197,12 +208,60 @@ func CreateIndexesForBlogCategory(ctx context.Context, dbName, collectionName st
 	return nil
 }
 
+func CreateIndexesForServiceArea(ctx context.Context, dbName, collectionName string) error {
+	collection := client.Database(dbName).Collection(collectionName)
+
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.M{"name": 1}, // Unique index on category
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"uuid": 1}, // Unique index on mobile
+			Options: options.Index().SetUnique(true),
+		},
+	}
+
+	_, err := collection.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		return fmt.Errorf("error creating indexes: %v", err)
+	}
+	// Log success
+	logger.Info(fmt.Sprintf("Indexes created for collection: %s", collectionName))
+
+	return nil
+}
+
 func CreateIndexesForBlogTag(ctx context.Context, dbName, collectionName string) error {
 	collection := client.Database(dbName).Collection(collectionName)
 
 	indexes := []mongo.IndexModel{
 		{
 			Keys:    bson.M{"name": 1}, // Unique index on category
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"uuid": 1}, // Unique index on mobile
+			Options: options.Index().SetUnique(true),
+		},
+	}
+
+	_, err := collection.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		return fmt.Errorf("error creating indexes: %v", err)
+	}
+	// Log success
+	logger.Info(fmt.Sprintf("Indexes created for collection: %s", collectionName))
+
+	return nil
+}
+
+func CreateIndexesForBlogComments(ctx context.Context, dbName, collectionName string) error {
+	collection := client.Database(dbName).Collection(collectionName)
+
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.M{"description": 1}, // Unique index on category
 			Options: options.Index().SetUnique(true),
 		},
 		{

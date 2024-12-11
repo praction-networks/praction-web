@@ -20,15 +20,15 @@ var (
 	ErrDatabaseOperation = errors.New("database error")
 )
 
-func CreateBlogComments(ctx context.Context, blogComments models.Comments) error {
+func CreateBlogComments(ctx context.Context, blogComments models.Comments, BlogID primitive.ObjectID) error {
 
 	//Check If Blog is Valid or Not
 
-	err := isBlogAvailable(ctx, blogComments.BlogID)
+	err := isBlogAvailable(ctx, BlogID)
 	if err != nil {
 		if errors.Is(err, ErrNoBlogFound) {
-			logger.Info(fmt.Sprintf("No blog found with ID: %v", blogComments.BlogID))
-			return fmt.Errorf("blog with ID %v does not exist", blogComments.BlogID)
+			logger.Info(fmt.Sprintf("No blog found with ID: %v", BlogID))
+			return fmt.Errorf("blog with ID %v does not exist", BlogID)
 		}
 		if errors.Is(err, ErrDatabaseOperation) {
 			logger.Error(fmt.Sprintf("Database error while checking blog availability: %v", err))
@@ -55,14 +55,14 @@ func CreateBlogComments(ctx context.Context, blogComments models.Comments) error
 
 	// Append Blog COmments ID to Blog Comments Section
 
-	err = appendBlogCommentsToBlog(ctx, blogComments.BlogID, CommentID)
+	err = appendBlogCommentsToBlog(ctx, BlogID, CommentID)
 
 	if err != nil {
 		logger.Error("Failed to Update Blog With Comments")
 		return err
 	}
 
-	logger.Info(fmt.Sprintf("Comments Created successfully for blog ID %s created successfully.", blogComments.BlogID))
+	logger.Info(fmt.Sprintf("Comments Created successfully for blog ID %s created successfully.", BlogID))
 	return nil
 }
 
@@ -116,20 +116,28 @@ func isBlogAvailable(ctx context.Context, blogID primitive.ObjectID) error {
 
 	return nil
 }
+
 func appendBlogCommentsToBlog(ctx context.Context, blogID primitive.ObjectID, commentID primitive.ObjectID) error {
 	client := database.GetClient()
 	collection := client.Database("practionweb").Collection("Blog")
 
-	// Filter to locate the blog by its ID
-	filter := bson.M{"_id": blogID}
-
-	// Update operation to add the CommentID to the CommentsList if it doesn't already exist
-	update := bson.M{
-		"$addToSet": bson.M{"comments": commentID}, // Prevents duplicates
+	// Step 1: Fetch the full blog document
+	var blog models.Blog
+	err := collection.FindOne(ctx, bson.M{"_id": blogID}).Decode(&blog)
+	if err != nil {
+		logger.Error(fmt.Sprintf("Error fetching blog with ID %v: %v", blogID, err))
+		return fmt.Errorf("failed to fetch blog: %w", err)
 	}
 
-	// Execute the update
-	_, err := collection.UpdateOne(ctx, filter, update)
+	// Step 2: Append the new comment ID to the CommentsList if it's not already there
+	// We use $addToSet to avoid duplicates
+	update := bson.M{
+		"$addToSet": bson.M{"commentsList": commentID}, // Changed from 'comments' to 'commentsList'
+		"$inc":      bson.M{"commentsCount": 1},        // Increment the comment count
+	}
+
+	// Step 3: Update the blog document with the new comment
+	_, err = collection.UpdateOne(ctx, bson.M{"_id": blogID}, update)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Error appending CommentID %v to blog with ID %v: %v", commentID, blogID, err))
 		return fmt.Errorf("failed to append comment to blog: %w", err)

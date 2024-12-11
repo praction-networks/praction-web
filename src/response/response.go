@@ -131,3 +131,21 @@ func SendUnauthorizedError(w http.ResponseWriter, message string) {
 	}
 	json.NewEncoder(w).Encode(response)
 }
+
+// SendCreated sends a JSON success response for resource creation without requiring data
+func SendCreated(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated) // Set the status code to 201
+
+	// Prepare the response structure
+	response := struct {
+		Status string `json:"status"`
+	}{
+		Status: "success",
+	}
+
+	// Encode and send the JSON response
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+	}
+}

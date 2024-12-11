@@ -8,7 +8,7 @@ import (
 )
 
 type Job struct {
-	ID                  primitive.ObjectID `json:"id" bson:"_id"`
+	ID                  primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Title               string             `json:"title" bson:"title" validate:"required,max=100"`
 	UUID                string             `json:"-" bson:"uuid"`
 	JobID               string             `json:"jobID" bson:"jobID"`

@@ -7,7 +7,7 @@ import (
 )
 
 type UserInterest struct {
-	ID            primitive.ObjectID `json:"id" bson:"_id"`
+	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	Name          string             `json:"name" bson:"name" validate:"required,max=100"` // User's full name
 	UUID          string             `json:"uuid" bson:"uuid"`                             // Auto-generated UUID, excluded from JSON
 	CreatedAt     time.Time          `json:"createdAt" bson:"createdAt"`                   // Auto-generated creation timestamp, excluded from JSON

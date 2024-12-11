@@ -13,6 +13,7 @@ import (
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -78,6 +79,7 @@ func CreateBlog(ctx context.Context, blog models.Blog) error {
 	blog.View = 0
 	blog.CommentsCount = 0
 	blog.Shares = 0
+	blog.CommentsList = make([]primitive.ObjectID, 0)
 
 	err = insertBlogIntoDB(ctx, blog)
 	if err != nil {

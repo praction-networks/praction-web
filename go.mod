@@ -4,6 +4,7 @@ go 1.23.3
 
 require (
 	github.com/Pacerino/postal-go v0.0.0-20240122224334-7b216dcadf97
+	github.com/chai2010/webp v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-playground/validator/v10 v10.23.0
@@ -43,6 +44,8 @@ require (
 	github.com/mailru/easyjson v0.7.7 // indirect
 	github.com/mitchellh/mapstructure v1.5.0 // indirect
 	github.com/montanaflynn/stats v0.7.1 // indirect
+	github.com/paulmach/go.geo v0.0.0-20180829195134-22b514266d33 // indirect
+	github.com/paulmach/go.geojson v1.5.0 // indirect
 	github.com/pelletier/go-toml/v2 v2.2.2 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/sagikazarmark/locafero v0.4.0 // indirect

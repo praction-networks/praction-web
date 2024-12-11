@@ -67,6 +67,8 @@ func LoadRoutes() *chi.Mux {
 			r.Post("/blog", blogHandler.CreateBlogHandler)
 			r.Get("/blog", blogHandler.GetBlogHandler)
 			r.Get("/blog/{id}", blogHandler.GetOneBlogHandler)
+			r.Post("/blog/view", blogHandler.AddView)
+			r.Post("/blog/share", blogHandler.AddShare)
 
 			blogCategoryHandler := &handler.BlogCategoryHandler{}
 
@@ -85,6 +87,14 @@ func LoadRoutes() *chi.Mux {
 			blogCommentsHandler := &handler.BlogCommentsHandler{}
 
 			r.Post("/blog/comments", blogCommentsHandler.CreateBlogCommentsHandler)
+
+			// Service Area
+
+			serviceAreaHandler := &handler.ServiceAreaHandler{}
+
+			r.Post("/servicearea", serviceAreaHandler.CreateServiceArea)
+			r.Post("/servicearea/check", serviceAreaHandler.CheckServiceArea)
+			r.Get("/servicearea", serviceAreaHandler.GetAllServiceArea)
 
 		})
 	})

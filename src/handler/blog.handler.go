@@ -2,7 +2,9 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
@@ -11,6 +13,7 @@ import (
 	"github.com/praction-networks/quantum-ISP365/webapp/src/service"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/utils"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/validator"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type BlogHandler struct{}
@@ -134,4 +137,100 @@ func (bh *BlogHandler) GetOneBlogHandler(w http.ResponseWriter, r *http.Request)
 
 	logger.Info("Blog found with ID")
 	response.SendSuccess(w, blog, http.StatusOK)
+}
+
+func (bh *BlogHandler) AddView(w http.ResponseWriter, r *http.Request) {
+
+	blogID := r.URL.Query().Get("blogID")
+
+	if blogID == "" {
+		logger.Error("blog ID is required to increment view to blog with params")
+		response.SendBadRequestError(w, "blog ID is required to increment view")
+		return
+	}
+
+	if !ValidateObjectID(blogID) {
+		logger.Error("blogID must be a valid Mongo Object ID")
+
+		response.SendBadRequestError(w, "Invalid blogID format")
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(blogID)
+
+	if err != nil {
+		logger.Warn("Invalid blogID format: %v", err)
+	}
+
+	err = service.CreateBlogView(r.Context(), objectID)
+
+	// Handle errors returned by the service layer
+	if err != nil {
+		// Check specific errors for more detailed responses
+		if strings.Contains(err.Error(), "does not exist") {
+			logger.Error(fmt.Sprintf("Blog not found: %v", err))
+			response.SendNotFoundError(w, err.Error())
+			return
+		} else if strings.Contains(err.Error(), "internal database error") {
+			logger.Error(fmt.Sprintf("Internal database error: %v", err))
+			response.SendInternalServerError(w, "Internal server error, please try again later or connect with Web admin")
+			return
+		} else {
+			// General error
+			logger.Error(fmt.Sprintf("Failed to increment view: %v", err))
+			response.SendInternalServerError(w, "Failed to increment view")
+			return
+		}
+	}
+
+	response.SendCreated(w)
+
+}
+
+func (bh *BlogHandler) AddShare(w http.ResponseWriter, r *http.Request) {
+
+	blogID := r.URL.Query().Get("blogID")
+
+	if blogID == "" {
+		logger.Error("blog ID is required to incremented share, Please pass blogID with parema in request")
+		response.SendBadRequestError(w, "blog ID is required to incremented share")
+		return
+	}
+
+	if !ValidateObjectID(blogID) {
+		logger.Error("blogID must be a valid Mongo Object ID")
+
+		response.SendBadRequestError(w, "Invalid blogID format")
+		return
+	}
+
+	objectID, err := primitive.ObjectIDFromHex(blogID)
+
+	if err != nil {
+		logger.Warn("Invalid blogID format: %v", err)
+	}
+
+	err = service.CreateBlogShare(r.Context(), objectID)
+
+	// Handle errors returned by the service layer
+	if err != nil {
+		// Check specific errors for more detailed responses
+		if strings.Contains(err.Error(), "does not exist") {
+			logger.Error(fmt.Sprintf("Blog not found: %v", err))
+			response.SendNotFoundError(w, err.Error())
+			return
+		} else if strings.Contains(err.Error(), "internal database error") {
+			logger.Error(fmt.Sprintf("Internal database error: %v", err))
+			response.SendInternalServerError(w, "Internal server error, please try again later or connect with Web admin")
+			return
+		} else {
+			// General error
+			logger.Error(fmt.Sprintf("Failed to increment share: %v", err))
+			response.SendInternalServerError(w, "Failed to increment share")
+			return
+		}
+	}
+
+	response.SendCreated(w)
+
 }

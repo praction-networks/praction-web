@@ -7,7 +7,7 @@ import (
 )
 
 type UserRefrence struct {
-	ID            primitive.ObjectID `json:"id" bson:"_id"`
+	ID            primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	ReferedBy     UserType           `json:"referredBy" bson:"referredBy" validate:"required"` // Ensure key matches 'referredBy' in JSON
 	Referels      []UserType         `json:"referrels" bson:"referrels" validate:"required,min=1,max=5,uniqueEmailsAndMobiles"`
 	RefrelCoupon  string             `json:"refrelCoupon" bson:"refrelCoupon"`

@@ -1,16 +1,22 @@
 package googleDrive
 
 import (
+	"bytes"
 	"context"
 	"crypto/md5"
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"image"
+	"image/jpeg"
+	"image/png"
 	"io"
 	"log"
 	"mime/multipart"
+	"path/filepath"
 	"strings"
 
+	"github.com/chai2010/webp"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/service"
@@ -29,12 +35,22 @@ func (client *GoogleDriveClient) UploadImageToDrive(file multipart.File, fileNam
 	}
 	logger.Info("Image extension validated successfully", "fileName", fileName)
 
-	// Compute file hash for duplicate check
-	fileHash, err := hashFile(file)
+	// Convert image to WebP format
+	logger.Info("Converting image to WebP format")
+
+	webpBuffer, err := convertToWebP(file, fileName)
+
 	if err != nil {
-		logger.Error("Failed to compute file hash", "error", err.Error())
-		return models.Image{}, fmt.Errorf("failed to compute file hash: %v", err)
+		logger.Error("Failed to convert image to WebP", "error", err.Error())
+		return models.Image{}, fmt.Errorf("failed to convert image to WebP: %v", err)
 	}
+
+	fileName = strings.TrimSuffix(fileName, filepath.Ext(fileName)) + ".webp"
+
+	logger.Info("Image converted to WebP format successfully", "fileName", fileName)
+
+	// Compute file hash for duplicate check
+	fileHash := hashBuffer(webpBuffer)
 	logger.Info("File hash computed successfully", "fileHash", fileHash)
 
 	// Check for duplicates using hash
@@ -69,7 +85,7 @@ func (client *GoogleDriveClient) UploadImageToDrive(file multipart.File, fileNam
 
 	logger.Info("Initiating file upload to Google Drive", "fileName", fileName, "folderID", folderID)
 
-	uploadRequest := client.service.Files.Create(uploadMetadata).Media(file)
+	uploadRequest := client.service.Files.Create(uploadMetadata).Media(webpBuffer)
 	uploadedFile, err := uploadRequest.Do()
 	if err != nil {
 		logger.Error("Failed to upload image to Google Drive", "fileName", fileName, "error", err.Error())
@@ -148,29 +164,6 @@ func (client *GoogleDriveClient) SearchFiles(query string) ([]*drive.File, error
 	return files, nil
 }
 
-// hashFile computes the MD5 hash of a file for duplicate detection.
-func hashFile(file multipart.File) (string, error) {
-	logger.Info("Computing file hash")
-	hash := md5.New()
-	_, err := file.Seek(0, io.SeekStart) // Reset the file pointer
-	if err != nil {
-		logger.Error("Failed to reset file pointer during hashing", "error", err.Error())
-		return "", fmt.Errorf("failed to reset file pointer: %v", err)
-	}
-	if _, err := io.Copy(hash, file); err != nil {
-		logger.Error("Failed to compute file hash", "error", err.Error())
-		return "", fmt.Errorf("failed to compute file hash: %v", err)
-	}
-	_, err = file.Seek(0, io.SeekStart) // Reset the file pointer again for upload
-	if err != nil {
-		logger.Error("Failed to reset file pointer after hashing", "error", err.Error())
-		return "", fmt.Errorf("failed to reset file pointer: %v", err)
-	}
-	fileHash := hex.EncodeToString(hash.Sum(nil))
-	logger.Info("File hash computed successfully", "fileHash", fileHash)
-	return fileHash, nil
-}
-
 // isValidImageExtension validates the file extension to allow only specific image types.
 func isValidImageExtension(fileName string) bool {
 	logger.Info("Validating file extension", "fileName", fileName)
@@ -184,4 +177,59 @@ func isValidImageExtension(fileName string) bool {
 	}
 	logger.Warn("File extension is invalid", "fileName", fileName)
 	return false
+}
+
+// convertToWebP converts an image file to WebP format.
+// convertToWebP converts any valid image file to WebP format.
+func convertToWebP(file multipart.File, fileName string) (*bytes.Buffer, error) {
+	logger.Info("Decoding image for WebP conversion")
+
+	// Validate file extension
+	if !isValidImageExtension(fileName) {
+		return nil, fmt.Errorf("invalid file extension for WebP conversion")
+	}
+
+	// Decode the image based on its format
+	var img image.Image
+	var err error
+
+	// Read the file extension to decide the decoder
+	switch {
+	case strings.HasSuffix(fileName, ".jpg") || strings.HasSuffix(fileName, ".jpeg"):
+		img, err = jpeg.Decode(file)
+	case strings.HasSuffix(fileName, ".png"):
+		img, err = png.Decode(file)
+	case strings.HasSuffix(fileName, ".webp"):
+		img, err = webp.Decode(file)
+	case strings.HasSuffix(fileName, ".svg"):
+		// SVG decoding needs additional processing (e.g., using a package like `github.com/ajstarks/svgo`)
+		// For now, we skip SVG handling in this example.
+		return nil, fmt.Errorf("SVG format is not supported for WebP conversion")
+	default:
+		return nil, fmt.Errorf("unsupported image format")
+	}
+
+	if err != nil {
+		logger.Error("Failed to decode image", "error", err.Error())
+		return nil, fmt.Errorf("failed to decode image: %v", err)
+	}
+
+	logger.Info("Image decoded successfully", "fileName", fileName)
+
+	// Convert to WebP format
+	webpBuffer := new(bytes.Buffer)
+	err = webp.Encode(webpBuffer, img, &webp.Options{Quality: 80})
+	if err != nil {
+		logger.Error("Failed to encode image to WebP", "error", err.Error())
+		return nil, fmt.Errorf("failed to encode image to WebP: %v", err)
+	}
+
+	return webpBuffer, nil
+}
+
+// hashBuffer computes the MD5 hash of a buffer for duplicate detection.
+func hashBuffer(buffer *bytes.Buffer) string {
+	logger.Info("Computing hash for buffer")
+	hash := md5.Sum(buffer.Bytes())
+	return hex.EncodeToString(hash[:])
 }
