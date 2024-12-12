@@ -4,13 +4,17 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/service"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/utils"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/validator"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ServiceAreaHandler struct{}
@@ -113,4 +117,166 @@ func (sa *ServiceAreaHandler) CheckServiceArea(w http.ResponseWriter, r *http.Re
 
 	response.SendSuccess(w, payload, http.StatusOK)
 
+}
+
+func (sa *ServiceAreaHandler) UpdateServiceArea(w http.ResponseWriter, r *http.Request) {
+
+	var areaUpdate models.UpdateFeture
+
+	// Parse the request body into ServiceAreaCollection
+	if err := json.NewDecoder(r.Body).Decode(&areaUpdate); err != nil {
+		logger.Error("Error parsing request body", "error", err)
+		response.SendBadRequestError(w, "Invalid request payload")
+		return
+	}
+
+	logger.Info("Parsed UpdateArea request", "updateArea", areaUpdate)
+
+	// Ensure at least one of AddArea or RemoveArea is provided
+	if len(areaUpdate.AddArea) == 0 && len(areaUpdate.RemoveArea) == 0 {
+		logger.Error("Validation failed: both AddArea and RemoveArea are empty")
+		response.SendError(w, []response.ErrorDetail{{
+			Field:   "AddArea, RemoveArea",
+			Message: "At least one of AddArea or RemoveArea must be provided",
+		}}, http.StatusBadRequest)
+		return
+	}
+
+	// Validate the FeatureCollection object (this will include validation for each Feature)
+	validationErrors := validator.ValidateUpdateArea(&areaUpdate)
+	if len(validationErrors) > 0 {
+		logger.Error("Validation failed", "validationErrors", validationErrors)
+		response.SendError(w, validationErrors, http.StatusBadRequest)
+		return
+	}
+
+	// Call the service to update areas
+	err := service.UpdateAreaService(r.Context(), &areaUpdate)
+	if err != nil {
+		logger.Error("Error modifying service area", "error", err)
+
+		// Map service errors to appropriate HTTP responses
+		if isDuplicateAreaNameError(err) {
+			response.SendError(w, []response.ErrorDetail{{
+				Field:   "areaName",
+				Message: err.Error(),
+			}}, http.StatusConflict)
+		} else if isDuplicateKeyError(err) {
+			// Return HTTP 409 Conflict if the error is due to a duplicate key
+			response.SendError(w, []response.ErrorDetail{{
+				Field:   "areaName, uuid",
+				Message: err.Error(),
+			}}, http.StatusConflict)
+		} else if isNotFoundError(err) {
+			// Return HTTP 404 Not Found if the error is due to a missing resource
+			response.SendError(w, []response.ErrorDetail{{
+				Field:   "areaName",
+				Message: err.Error(),
+			}}, http.StatusNotFound)
+		} else {
+			// Return HTTP 500 Internal Server Error for other issues
+			response.SendInternalServerError(w, "Failed to modify service area")
+		}
+		return
+	}
+
+	// Respond with success
+	response.SendSuccess(w, map[string]string{"message": "Service areas updated successfully"}, http.StatusOK)
+
+}
+
+func (sa *ServiceAreaHandler) ModifyServiceArea(w http.ResponseWriter, r *http.Request) {
+
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		logger.Error("Blog ID is required to fetch Blog")
+		response.SendBadRequestError(w, "Blog ID is Required")
+		return
+	}
+
+	// Check if the ID is a valid MongoDB ObjectID
+	if _, err := primitive.ObjectIDFromHex(id); err != nil {
+		logger.Error("Invalid Service Area ID", "error", err)
+		response.SendBadRequestError(w, "Invalid Service Area ID")
+		return
+	}
+
+	var oneAreaUpdate models.UpdateOneArea
+
+	if err := json.NewDecoder(r.Body).Decode(&oneAreaUpdate); err != nil {
+		logger.Error("Error parsing request body", "error", err)
+		response.SendBadRequestError(w, "Invalid request payload")
+		return
+	}
+
+	// Validate the FeatureCollection object (this will include validation for each Feature)
+	validationErrors := validator.ValidateModifyArea(&oneAreaUpdate)
+	if len(validationErrors) > 0 {
+		logger.Error("Modify Area Validation failed", "validationErrors", validationErrors)
+		response.SendError(w, validationErrors, http.StatusBadRequest)
+		return
+	}
+
+	// Call the service to modify the service area
+	err := service.ModifyServiceArea(r.Context(), id, &oneAreaUpdate)
+	if err != nil {
+		logger.Error("Error modifying service area", "error", err)
+
+		// Map service errors to appropriate HTTP responses
+		switch {
+		case isDuplicateAreaNameError(err):
+			response.SendError(w, []response.ErrorDetail{{
+				Field:   "areaName",
+				Message: err.Error(),
+			}}, http.StatusConflict) // HTTP 409 for conflicts
+		case isDuplicateKeyError(err):
+			response.SendError(w, []response.ErrorDetail{{
+				Field:   "areaName, uuid",
+				Message: err.Error(),
+			}}, http.StatusConflict) // HTTP 409 for conflicts
+		case isNotFoundError(err):
+			response.SendError(w, []response.ErrorDetail{{
+				Field:   "id",
+				Message: err.Error(),
+			}}, http.StatusNotFound) // HTTP 404 for not found
+		default:
+			response.SendInternalServerError(w, "Failed to modify service area")
+		}
+		return
+	}
+
+	// Success response
+	response.SendSuccess(w, map[string]string{"message": "Service area modified successfully"}, http.StatusOK)
+
+}
+
+func isDuplicateKeyError(err error) bool {
+	if mongoErr, ok := err.(mongo.WriteException); ok {
+		for _, writeErr := range mongoErr.WriteErrors {
+			if writeErr.Code == 11000 { // Duplicate Key Error Code
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func isNotFoundError(err error) bool {
+	return err.Error() == "document not found" // Customize based on service-layer error
+}
+
+// Helper function to check if a substring exists in an error message
+func contains(fullText, subText string) bool {
+	fmt.Printf("FullText: %s\n", fullText)
+	fmt.Printf("SubText: %s\n", subText)
+	return fullText != "" && subText != "" && strings.Contains(fullText, subText)
+}
+
+func isDuplicateAreaNameError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	fmt.Printf("Error text: %s\n", err.Error()) // Log the full error message for debugging
+	return contains(err.Error(), "duplicate areaName")
 }

@@ -20,6 +20,12 @@ func CreateServiceArea(ctx context.Context, serviceArea *models.FeatureCollectio
 	serviceArea.UpdatedAt = time.Now()
 	serviceArea.UUID = uuid.New().String()
 
+	// Generate a UUID for each feature in the FeatureCollection
+	for i := range serviceArea.Features {
+		serviceArea.Features[i].UUID = uuid.New().String()
+		logger.Info("Generated UUID for feature", "uuid", serviceArea.Features[i].UUID, "areaName", serviceArea.Features[i].Properties.AreaName)
+	}
+
 	// Insert into MongoDB
 	err := insertServiceAreaIntoDB(ctx, serviceArea)
 	if err != nil {

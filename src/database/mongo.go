@@ -211,21 +211,40 @@ func CreateIndexesForBlogCategory(ctx context.Context, dbName, collectionName st
 func CreateIndexesForServiceArea(ctx context.Context, dbName, collectionName string) error {
 	collection := client.Database(dbName).Collection(collectionName)
 
-	indexes := []mongo.IndexModel{
+	// Define multiple indexes
+	indexModels := []mongo.IndexModel{
 		{
-			Keys:    bson.M{"name": 1}, // Unique index on category
+			Keys: bson.D{
+				{Key: "features.uuid", Value: 1},
+			},
 			Options: options.Index().SetUnique(true),
 		},
 		{
-			Keys:    bson.M{"uuid": 1}, // Unique index on mobile
+			Keys: bson.D{
+				{Key: "features.properties.areaName", Value: 1},
+			},
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys: bson.D{
+				{Key: "uuid", Value: 1},
+			},
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys: bson.D{
+				{Key: "name", Value: 1},
+			},
 			Options: options.Index().SetUnique(true),
 		},
 	}
 
-	_, err := collection.Indexes().CreateMany(ctx, indexes)
+	// Create indexes in bulk
+	_, err := collection.Indexes().CreateMany(ctx, indexModels)
 	if err != nil {
 		return fmt.Errorf("error creating indexes: %v", err)
 	}
+
 	// Log success
 	logger.Info(fmt.Sprintf("Indexes created for collection: %s", collectionName))
 

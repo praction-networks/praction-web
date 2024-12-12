@@ -95,6 +95,8 @@ func LoadRoutes() *chi.Mux {
 			r.Post("/servicearea", serviceAreaHandler.CreateServiceArea)
 			r.Post("/servicearea/check", serviceAreaHandler.CheckServiceArea)
 			r.Get("/servicearea", serviceAreaHandler.GetAllServiceArea)
+			r.Patch("/servicearea/{id}", serviceAreaHandler.UpdateServiceArea)
+			r.Patch("/servicearea/area/{id}", serviceAreaHandler.ModifyServiceArea)
 
 		})
 	})
@@ -102,7 +104,7 @@ func LoadRoutes() *chi.Mux {
 	// Handle OPTIONS requests (CORS preflight)
 	r.Options("/*", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE")
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT,PATCH, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Strict-Auth-Key")
 		w.Header().Set("Access-Control-Max-Age", "3600") // Optional: caches the preflight response for 1 hour
 		w.WriteHeader(http.StatusNoContent)              // 204 No Content
