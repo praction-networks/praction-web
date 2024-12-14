@@ -26,9 +26,9 @@ func GetOneJob(ctx context.Context, id string) (*models.Job, error) {
 	}
 	// Build the query filter
 	filter := bson.M{
-		"_id":                 objectID,
-		"applicationDeadline": bson.M{"$gt": time.Now()},
-		"status":              "Open",
+		"_id":                      objectID,
+		"applicationDeadline.time": bson.M{"$gt": time.Now()},
+		"status":                   "Open",
 	}
 
 	// Query the collection

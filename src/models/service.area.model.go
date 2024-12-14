@@ -53,12 +53,6 @@ type FeatureCollection struct {
 	UpdatedAt time.Time          `bson:"updatedAt" json:"updatedAt"`                                   // Last updated time
 }
 
-// PointRequest represents the request body for validating if a point (latitude, longitude) is inside a service area.
-type PointRequest struct {
-	Latitude  float64 `json:"latitude" validate:"required,latitude"`
-	Longitude float64 `json:"longitude" validate:"required,longitude"`
-}
-
 type UpdateFeture struct {
 	AddArea    []Feature `bson:"addArea" json:"addArea" validate:"dive"`
 	RemoveArea []string  `bson:"removeArea" json:"removeArea" validate:"dive"`
@@ -68,8 +62,12 @@ type UpdateOneArea struct {
 	UUID       string            `bson:"-" json:"uuid" validate:"required,uuid4"`
 	UpdateArea FeatureProperties `bson:"-" json:"updateArea" validate:"required"`
 }
+type PointRequest struct {
+	Latitude  float64 `json:"latitude" validate:"required,latitude"`
+	Longitude float64 `json:"longitude" validate:"required,longitude"`
+}
 
 type ServiceCheck struct {
-	Coordinates PointRequest `bson:"coordinates" json:"coordinates"`
-	Pincode     string       `bson:"pincode" json:"pincode" validate:"required,len=6"`
+	Coordinates PointRequest `bson:"coordinates,omitempty" json:"coordinates,omitempty"`
+	Pincode     string       `bson:"pincode,omitempty" json:"pincode,omitempty" validate:"len=6"`
 }

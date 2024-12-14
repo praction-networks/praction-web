@@ -16,16 +16,25 @@ func CheckServiceByPinCode(ctx context.Context, pincode string) ([]models.Featur
 	// Fetch service area properties by pincode
 	featureProperties, err := GetArrayofPinCode(ctx, pincode)
 	if err != nil {
+		if err.Error() == fmt.Sprintf("no service areas found for pincode %s", pincode) {
+			// Handle specific case when no service areas are found
+			logger.Info(err.Error())
+			return nil, err
+		}
+
+		// Log and wrap other errors as internal server errors
 		logger.Error("Error fetching service area properties", "error", err)
-		return nil, fmt.Errorf("failed to fetch service area properties: %w", err)
+		return nil, fmt.Errorf("internal server error: %w", err)
+	}
+
+	// Return an error if no properties are found, even though no database error occurred
+	if len(featureProperties) == 0 {
+		err := fmt.Errorf("no service areas found for pincode %s", pincode)
+		logger.Info(err.Error())
+		return nil, err
 	}
 
 	// Return the matched FeatureProperties
-	if len(featureProperties) == 0 {
-		logger.Info(fmt.Sprintf("No service areas found for pincode: %s", pincode))
-		return nil, fmt.Errorf("no service areas found for pincode %s", pincode)
-	}
-
 	return featureProperties, nil
 }
 

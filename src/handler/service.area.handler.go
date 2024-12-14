@@ -90,6 +90,15 @@ func (sa *ServiceAreaHandler) CheckServiceArea(w http.ResponseWriter, r *http.Re
 		response.SendBadRequestError(w, "At least one of the fields 'Coordinates' or 'Pincode' is required")
 		return
 	}
+
+	// Check if both Coordinates and Pincode are provided or if neither is provided
+	if (serviceCheck.Coordinates != (models.PointRequest{}) && serviceCheck.Pincode != "") ||
+		(serviceCheck.Coordinates == (models.PointRequest{}) && serviceCheck.Pincode == "") {
+		logger.Error("Exactly one of the fields 'Coordinates' or 'Pincode' is required to locate service")
+		response.SendBadRequestError(w, "Exactly one of the fields 'Coordinates' or 'Pincode' is required")
+		return
+	}
+
 	// Validate the FeatureCollection object (this will include validation for each Feature)
 	validationErrors := validator.ValidateServiceAreaCheck(serviceCheck)
 	if len(validationErrors) > 0 {
@@ -99,7 +108,7 @@ func (sa *ServiceAreaHandler) CheckServiceArea(w http.ResponseWriter, r *http.Re
 	}
 
 	if serviceCheck.Coordinates != (models.PointRequest{}) {
-		err := service.CheckServiceAvailability(r.Context(), &serviceCheck.Coordinates)
+		foundServiceArea, err := service.CheckServiceAvailability(r.Context(), &serviceCheck.Coordinates)
 
 		if err != nil {
 			// Handle different types of errors based on their content
@@ -112,7 +121,6 @@ func (sa *ServiceAreaHandler) CheckServiceArea(w http.ResponseWriter, r *http.Re
 				// Return 403 if the point is not within any service area
 				logger.Error("Point is not within any service area", "lat", serviceCheck.Coordinates.Latitude, "lon", serviceCheck.Coordinates.Longitude)
 				payload := map[string]interface{}{
-					"status":    "success",
 					"available": false,
 					"message":   "Sorry, we are not available in your area.",
 					"data":      nil,
@@ -127,10 +135,9 @@ func (sa *ServiceAreaHandler) CheckServiceArea(w http.ResponseWriter, r *http.Re
 		}
 
 		payload := map[string]interface{}{
-			"status":    "success",
 			"available": true,
 			"message":   "We are available in your area!",
-			"data":      nil,
+			"data":      foundServiceArea,
 		}
 
 		response.SendSuccess(w, payload, http.StatusOK)
@@ -155,9 +162,9 @@ func (sa *ServiceAreaHandler) CheckServiceArea(w http.ResponseWriter, r *http.Re
 	logger.Info("Service areas found for pincode", "pincode", serviceCheck.Pincode)
 
 	payload := map[string]interface{}{
-		"status":  "success",
-		"message": fmt.Sprintf("Service is available for pincode %s", serviceCheck.Pincode),
-		"data":    areaData,
+		"message":   fmt.Sprintf("Service is available for pincode %s", serviceCheck.Pincode),
+		"data":      areaData,
+		"available": true,
 	}
 
 	response.SendSuccess(w, payload, http.StatusOK)
