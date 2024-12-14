@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/praction-networks/quantum-ISP365/webapp/src/cloudinary"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/config"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/database"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
@@ -16,8 +17,9 @@ import (
 )
 
 type App struct {
-	router http.Handler
-	client *mongo.Client
+	router           http.Handler
+	client           *mongo.Client
+	cloudinaryClient *cloudinary.CloudinaryClient
 }
 
 func New() (*App, error) {
@@ -44,11 +46,17 @@ func New() (*App, error) {
 		logger.Warn("Failed to Create user or user already exist")
 	}
 
-	fmt.Println("User created successfully")
+	// Initialize Cloudinary Client
+	cloudinaryClient, err := cloudinary.NewCloudinaryCLient()
+	if err != nil {
+		logger.Error("Failed to initialize Cloudinary client", "error", err.Error())
+		return nil, fmt.Errorf("failed to initialize Cloudinary client: %w", err)
+	}
 
 	app := &App{
-		router: router.LoadRoutes(),
-		client: database.GetClient(),
+		router:           router.LoadRoutes(),
+		client:           database.GetClient(),
+		cloudinaryClient: cloudinaryClient,
 	}
 
 	return app, nil

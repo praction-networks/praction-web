@@ -65,5 +65,11 @@ type UpdateFeture struct {
 }
 
 type UpdateOneArea struct {
+	UUID       string            `bson:"-" json:"uuid" validate:"required,uuid4"`
 	UpdateArea FeatureProperties `bson:"-" json:"updateArea" validate:"required"`
+}
+
+type ServiceCheck struct {
+	Coordinates PointRequest `bson:"coordinates" json:"coordinates"`
+	Pincode     string       `bson:"pincode" json:"pincode" validate:"required,len=6"`
 }

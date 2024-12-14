@@ -27,8 +27,14 @@ func ValidateModifyArea(modifyArea *models.UpdateOneArea) []response.ErrorDetail
 				message = e.Field() + " is required"
 			case "oneof":
 				message = e.Field() + " must be one of: " + e.Param()
-			case "coordinatesRange":
-				message = e.Field() + " contains invalid GeoJSON coordinates"
+			case "max":
+				message = e.Field() + " must not exceed " + e.Param() + " characters"
+			case "min":
+				message = e.Field() + " must have a minimum of " + e.Param() + " items"
+			case "uuid4":
+				message = e.Field() + " must have a valid uuid4"
+			case "len":
+				message = e.Field() + " must have a minimum of " + e.Param() + " length"
 			default:
 				message = e.Field() + " validation failed on the '" + e.Tag() + "' tag"
 			}

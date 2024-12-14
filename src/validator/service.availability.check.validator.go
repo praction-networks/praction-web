@@ -7,14 +7,14 @@ import (
 )
 
 // ValidatePointCheck validates the point check request (latitude and longitude) and returns error details.
-func ValidatePointCheck(pointRequest *models.PointRequest) []response.ErrorDetail {
+func ValidateServiceAreaCheck(serviceRequest *models.ServiceCheck) []response.ErrorDetail {
 	var validationErrors []response.ErrorDetail
 
 	// Initialize validator instance
 	v := validator.New()
 
 	// Perform the validation
-	err := v.Struct(pointRequest)
+	err := v.Struct(serviceRequest)
 	if err != nil {
 		for _, e := range err.(validator.ValidationErrors) {
 			var message string

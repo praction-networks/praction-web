@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
@@ -14,7 +16,7 @@ import (
 type JobHandler struct{}
 
 // CreateJobHandler handles the POST request for creating a job posting.
-func (h *JobHandler) CreateJobHandler(w http.ResponseWriter, r *http.Request) {
+func (jh *JobHandler) CreateJobHandler(w http.ResponseWriter, r *http.Request) {
 	var job models.Job
 
 	// Parse the request body
@@ -58,7 +60,7 @@ func (h *JobHandler) CreateJobHandler(w http.ResponseWriter, r *http.Request) {
 	response.SendSuccess(w, "Job created successfully", http.StatusCreated)
 }
 
-func (p *JobHandler) GetAllJobs(w http.ResponseWriter, r *http.Request) {
+func (jh *JobHandler) GetAllJobs(w http.ResponseWriter, r *http.Request) {
 	// Create a context for database interaction
 	ctx := r.Context()
 
@@ -71,4 +73,32 @@ func (p *JobHandler) GetAllJobs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.SendSuccess(w, jobs, http.StatusOK)
+}
+
+func (jh *JobHandler) GetOneJobandler(w http.ResponseWriter, r *http.Request) {
+	// Extract the ID from the URL
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		logger.Error("Job ID is required to fetch Job")
+
+		response.SendBadRequestError(w, "JOB ID is Required")
+		return
+	}
+
+	job, err := service.GetOneJob(r.Context(), id)
+
+	if err != nil {
+		logger.Error(err.Error())
+		response.SendInternalServerError(w, "Error while retriving Job please connect with you administrator")
+		return
+	}
+
+	if job == nil {
+		logger.Info("No job found with the ID")
+		response.SendNotFoundError(w, fmt.Sprintf("No Job Found with ID %s", id))
+		return
+	}
+
+	logger.Info("Job found with ID")
+	response.SendSuccess(w, job, http.StatusOK)
 }

@@ -15,6 +15,13 @@ type EnvConfig struct {
 	JWTEnv         JWTConfig         `mapstructure:"AUTH"`
 	MSG91Env       MSG91Config       `mapstructure:"MSG91"`
 	PostalEnv      POSTALConfig      `mapstructure:"POSTAL"`
+	CloudinaryEnv  CLOUDINARYConfig  `mapstructure:"CLOUDINARY"`
+}
+
+type CLOUDINARYConfig struct {
+	CloudName string `mapstructure:"CLOUDNAME"`
+	ApiKey    string `mapstructure:"APIKEY"`
+	ApiSecret string `mapstructure:"APISECRET"`
 }
 
 type POSTALConfig struct {
@@ -63,6 +70,7 @@ type EnvironmentConfig struct {
 
 func EnvGet() (EnvConfig, error) {
 	viper.SetConfigFile("src/config/environment.yaml")
+	// viper.SetConfigFile("/app/config/environment.yaml")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return EnvConfig{}, errors.New("error reading config file: " + err.Error())
@@ -148,4 +156,14 @@ func POSTALEnvGet() (POSTALConfig, error) {
 	}
 
 	return envConfig.PostalEnv, nil
+}
+
+func CLOUDINARYEnvGet() (CLOUDINARYConfig, error) {
+	envConfig, err := EnvGet()
+	if err != nil {
+		msg := fmt.Sprintf("Unable to get CLOUDINARY Env Config Error: %v", err)
+		return CLOUDINARYConfig{}, errors.New(msg)
+	}
+
+	return envConfig.CloudinaryEnv, nil
 }

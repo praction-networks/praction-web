@@ -12,6 +12,11 @@ import (
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 )
 
+// @title Praction Web APIs Server
+// @version 1.0
+// @description This API Server will be used to serve Praction backend API Server
+// @BasePath /
+
 func main() {
 	// Create the application
 	app, err := app.New()

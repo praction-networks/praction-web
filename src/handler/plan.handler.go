@@ -13,6 +13,17 @@ import (
 
 type Plan struct{}
 
+// CreatePlan godoc
+// @Summary Create a new plan
+// @Description This endpoint allows the creation of a new plan in the system
+// @Tags Plan
+// @Accept json
+// @Produce json
+// @Param plan body models.Plan true "Create Plan"
+// @Success 201 {string} string "Plan created successfully"
+// @Failure 400 {array} response.ErrorDetail "Invalid request payload or validation errors"
+// @Failure 500 {array} response.ErrorDetail "Error creating plan"
+// @Router /web/v1/plan [post]
 func (p *Plan) CreatePlan(w http.ResponseWriter, r *http.Request) {
 
 	var plan models.Plan
@@ -59,6 +70,14 @@ func (p *Plan) CreatePlan(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// GetAllPlan godoc
+// @Summary Get all plans
+// @Description Retrieve all the plans available in the system
+// @Tags Plan
+// @Produce json
+// @Success 200 {array} models.Plan "List of plans"
+// @Failure 500 {array} response.ErrorDetail "Error retrieving plans"
+// @Router /web/v1/plans [get]
 func (p *Plan) GetAllPlan(w http.ResponseWriter, r *http.Request) {
 	// Create a context for database interaction
 	ctx := r.Context()

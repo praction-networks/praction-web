@@ -81,7 +81,6 @@ type Image struct {
 	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
 	UUID      string             `json:"uuid" bson:"uuid"`
 	FileID    string             `json:"fileID" bson:"fileID"`
-	MimeType  string             `json:"mimeType" bson:"mimeType"`
 	FileName  string             `json:"fileName" bson:"FileName"`
 	ImageURL  string             `json:"imageURL" bson:"imageURL"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`

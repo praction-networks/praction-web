@@ -1,15 +1,12 @@
-version: '3.8'
+version: "3.8"
 services:
   webapp:
     image: webapp:latest
     build:
       context: .
-      dockerfile: Dockerfile.multistage
+      dockerfile: Dockerfile
     ports:
-      - "3000:3000"
+      - "3000:3000" # Ensure port mapping matches the exposed port
     restart: always
-    volumes:
-      - ./src/config/environment.yaml:/app/src/config/environment.yaml:ro # Mount config as a volume
     environment:
       - APP_ENV=production
-

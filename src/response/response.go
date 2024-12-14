@@ -116,6 +116,39 @@ func SendNotFoundError(w http.ResponseWriter, message string) {
 	json.NewEncoder(w).Encode(response)
 }
 
+func SendConflictError(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusConflict)
+
+	response := ErrorResponse{
+		Status: "error",
+		Errors: []ErrorDetail{
+			{
+				Field:   "conflict",
+				Message: message,
+			},
+		},
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
+// SendUnsupportedMediaTypeError sends a JSON error response for unsupported media types (HTTP 415)
+func SendUnsupportedMediaTypeError(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusUnsupportedMediaType)
+
+	response := ErrorResponse{
+		Status: "error",
+		Errors: []ErrorDetail{
+			{
+				Field:   "media_type",
+				Message: message,
+			},
+		},
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
 func SendUnauthorizedError(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusUnauthorized)

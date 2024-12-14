@@ -12,28 +12,27 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func CreateGoogleImage(ImageName, ImageID, ImageURL, mimeType string) (models.Image, error) {
+func SaveblogImage(ImageName, ImageID, ImageURL string) (models.Image, error) {
 
-	var googleImage models.Image
-	googleImage.UUID = uuid.New().String()
-	googleImage.FileName = ImageName
-	googleImage.FileID = ImageID
-	googleImage.ImageURL = ImageURL
-	googleImage.MimeType = mimeType
-	googleImage.CreatedAt = time.Now()
-	googleImage.UpdatedAt = time.Now()
-	googleImage.IsActive = true
-	googleImage.IsDeleted = false
+	var Image models.Image
+	Image.UUID = uuid.New().String()
+	Image.FileName = ImageName
+	Image.FileID = ImageID
+	Image.ImageURL = ImageURL
+	Image.CreatedAt = time.Now()
+	Image.UpdatedAt = time.Now()
+	Image.IsActive = true
+	Image.IsDeleted = false
 
 	ctx := context.TODO()
-	err := insertGoogleImageIntoDB(ctx, googleImage)
+	err := insertGoogleImageIntoDB(ctx, Image)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to insert Google Image Metadata into DB: %v", err))
+		logger.Error(fmt.Sprintf("Failed to insert Blog Image Metadata into DB: %v", err))
 		return models.Image{}, fmt.Errorf("failed to create plan: %w", err)
 	}
 
-	logger.Info(fmt.Sprintf("Google Image Metadata with uuid %s created successfully.", googleImage.UUID))
-	return googleImage, nil
+	logger.Info(fmt.Sprintf("Google Image Metadata with uuid %s created successfully.", Image.UUID))
+	return Image, nil
 }
 
 // insertUserIntoDB inserts the new user into the MongoDB database

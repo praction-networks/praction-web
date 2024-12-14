@@ -43,10 +43,11 @@ func LoadRoutes() *chi.Mux {
 			r.Post("/plan", planHandler.CreatePlan)
 			r.Get("/plans", planHandler.GetAllPlan)
 
-			jonHandler := &handler.JobHandler{}
+			jobHandler := &handler.JobHandler{}
 
-			r.Post("/job", jonHandler.CreateJobHandler)
-			r.Get("/jobs", jonHandler.GetAllJobs)
+			r.Post("/job", jobHandler.CreateJobHandler)
+			r.Get("/jobs", jobHandler.GetAllJobs)
+			r.Get("/job/{id}", jobHandler.GetOneJobandler)
 
 			userIntrestHandler := &handler.UserIntrest{}
 
@@ -81,7 +82,7 @@ func LoadRoutes() *chi.Mux {
 			r.Get("/blog/tag", blogTagHandler.GetAllBlogTagHandler)
 
 			// Image upload route
-			imageUploadHandler := &handler.ImageUploadHandler{}
+			imageUploadHandler := handler.ImageUploadHandler{}
 			r.Post("/blog/image/upload", imageUploadHandler.UploadImage)
 
 			blogCommentsHandler := &handler.BlogCommentsHandler{}
