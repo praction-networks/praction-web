@@ -69,8 +69,8 @@ type EnvironmentConfig struct {
 }
 
 func EnvGet() (EnvConfig, error) {
-	viper.SetConfigFile("src/config/environment.yaml")
-	// viper.SetConfigFile("/app/config/environment.yaml")
+	// viper.SetConfigFile("src/config/environment.yaml")
+	viper.SetConfigFile("/src/config/environment.yaml")
 
 	if err := viper.ReadInConfig(); err != nil {
 		return EnvConfig{}, errors.New("error reading config file: " + err.Error())

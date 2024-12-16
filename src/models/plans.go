@@ -10,6 +10,7 @@ type Plan struct {
 }
 
 type PlanSpecific struct {
+	PlanID     string          `json:"planID" bson:"planID"`
 	Name       string          `json:"name" bson:"name" validate:"required,max=30"`
 	Speed      float64         `json:"speed" bson:"speed" validate:"required,gt=0"`
 	SpeedUnit  string          `json:"speedUnit" bson:"speedUnit" validate:"required,oneof=Mbps Gbps"`

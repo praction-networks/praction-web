@@ -100,6 +100,23 @@ func SendInternalServerError(w http.ResponseWriter, message string) {
 	json.NewEncoder(w).Encode(response)
 }
 
+// SendInternalServerError sends a JSON error response for server errors
+func SendServiceUnavailableError(w http.ResponseWriter, message string) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusServiceUnavailable)
+
+	response := ErrorResponse{
+		Status: "error",
+		Errors: []ErrorDetail{
+			{
+				Field:   "server",
+				Message: message,
+			},
+		},
+	}
+	json.NewEncoder(w).Encode(response)
+}
+
 func SendNotFoundError(w http.ResponseWriter, message string) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusNotFound)

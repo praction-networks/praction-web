@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
@@ -13,17 +14,6 @@ import (
 
 type Plan struct{}
 
-// CreatePlan godoc
-// @Summary Create a new plan
-// @Description This endpoint allows the creation of a new plan in the system
-// @Tags Plan
-// @Accept json
-// @Produce json
-// @Param plan body models.Plan true "Create Plan"
-// @Success 201 {string} string "Plan created successfully"
-// @Failure 400 {array} response.ErrorDetail "Invalid request payload or validation errors"
-// @Failure 500 {array} response.ErrorDetail "Error creating plan"
-// @Router /web/v1/plan [post]
 func (p *Plan) CreatePlan(w http.ResponseWriter, r *http.Request) {
 
 	var plan models.Plan
@@ -50,18 +40,27 @@ func (p *Plan) CreatePlan(w http.ResponseWriter, r *http.Request) {
 
 	// If there was an error creating the plan, handle it appropriately
 	if err != nil {
-		logger.Error("Error creating plan", "error", err)
-
-		// Create an array of ErrorDetail with relevant fields
-		errorDetails := []response.ErrorDetail{
-			{
-				Field:   "Plan",                                           // The field that caused the error
-				Message: "Failed to create plan. Please try again later.", // The error message
-			},
+		switch {
+		case errors.Is(err, service.ErrDuplicateKey):
+			// Handle duplicate key error
+			logger.Error("Duplicate plan detected")
+			// Return HTTP 409 Conflict to the user
+			response.SendConflictError(w, "Conflict: Duplicate plan")
+		case errors.Is(err, service.ErrDatabaseInsert):
+			// Handle database insertion error
+			logger.Error("Database insertion failed")
+			// Return HTTP 500 Internal Server Error
+			response.SendInternalServerError(w, "Internal Server Error")
+		case errors.Is(err, service.ErrDatabaseInternal):
+			// Handle database connection error
+			logger.Error("Database connection issue")
+			// Return HTTP 503 Service Unavailable
+			response.SendServiceUnavailableError(w, "Database connection issue")
+		default:
+			// Handle other errors
+			logger.Error("Unknown error occurred")
+			response.SendInternalServerError(w, "Internal Server Error")
 		}
-
-		// Pass the error details and the HTTP status code to SendError
-		response.SendError(w, errorDetails, http.StatusInternalServerError)
 		return
 	}
 
@@ -70,14 +69,6 @@ func (p *Plan) CreatePlan(w http.ResponseWriter, r *http.Request) {
 
 }
 
-// GetAllPlan godoc
-// @Summary Get all plans
-// @Description Retrieve all the plans available in the system
-// @Tags Plan
-// @Produce json
-// @Success 200 {array} models.Plan "List of plans"
-// @Failure 500 {array} response.ErrorDetail "Error retrieving plans"
-// @Router /web/v1/plans [get]
 func (p *Plan) GetAllPlan(w http.ResponseWriter, r *http.Request) {
 	// Create a context for database interaction
 	ctx := r.Context()

@@ -38,6 +38,51 @@ type SalaryRange struct {
 	Currency string  `json:"currency" bson:"currency" validate:"oneof=INR USD"`
 }
 
+type JobApplication struct {
+	ID           primitive.ObjectID  `json:"id" bson:"_id,omitempty"`                                                           // Unique ID for the application
+	JobID        primitive.ObjectID  `json:"jobID" bson:"jobID" validate:"required"`                                            // Reference to the Job ID
+	UserDetails  ApplicantDetails    `json:"userDetails" bson:"userDetails" validate:"required"`                                // User's personal and contact details
+	Resume       string              `json:"resume" bson:"resume" validate:"required,url"`                                      // URL to the resume
+	CoverLetter  string              `json:"coverLetter,omitempty" bson:"coverLetter,omitempty"`                                // Optional cover letter
+	Education    []EducationDetails  `json:"education" bson:"education" validate:"required,min=1,dive"`                         // Education history
+	Experience   []ExperienceDetails `json:"experience" bson:"experience,omitempty" validate:"omitempty,dive"`                  // Work experience
+	AppliedDate  time.Time           `json:"appliedDate" bson:"appliedDate"`                                                    // Date of application submission
+	Status       string              `json:"status" bson:"status" validate:"required,oneof=Pending Shortlisted Rejected Hired"` // Application status
+	Notes        string              `json:"notes,omitempty" bson:"notes,omitempty" validate:"omitempty,max=500"`               // Admin notes
+	ReferralCode string              `json:"referralCode,omitempty" bson:"referralCode,omitempty" validate:"omitempty,max=50"`  // Optional referral code
+}
+
+// ApplicantDetails stores the user's personal and contact details
+type ApplicantDetails struct {
+	Name          string    `json:"name" bson:"name" validate:"required,max=100"`                                                                      // Applicant's name
+	Email         string    `json:"email" bson:"email" validate:"required,email"`                                                                      // Applicant's email
+	Phone         string    `json:"phone,omitempty" bson:"phone,omitempty" validate:"omitempty,e164"`                                                  // Optional phone number
+	DateOfBirth   time.Time `json:"dateOfBirth" bson:"dateOfBirth" validate:"required"`                                                                // Date of birth
+	MaritalStatus string    `json:"maritalStatus,omitempty" bson:"maritalStatus,omitempty" validate:"omitempty,oneof=Single Married Divorced Widowed"` // Marital status
+	Address       string    `json:"address,omitempty" bson:"address,omitempty" validate:"omitempty,max=200"`
+	LinkedIn      string    `json:"linkedIn,omitempty" bson:"linkedIn,omitempty" validate:"omitempty,url"` // LinkedIn profile URL                                          // Address
+}
+
+// EducationDetails stores details of a user's educational qualifications
+type EducationDetails struct {
+	Institution string     `json:"institution" bson:"institution" validate:"required,max=100"`                         // Institution name
+	Degree      string     `json:"degree" bson:"degree" validate:"required,max=100"`                                   // Degree name (e.g., B.Tech, MBA)
+	Field       string     `json:"field" bson:"field" validate:"required,max=100"`                                     // Field of study (e.g., Computer Science)
+	StartDate   CustomDate `json:"startDate,omitempty" bson:"startDate,omitempty" validate:"required"`                 // Start date
+	EndDate     CustomDate `json:"endDate,omitempty" bson:"endDate,omitempty" validate:"omitempty,gtefield=StartDate"` // End date
+}
+
+// ExperienceDetails stores details of a user's work experience
+type ExperienceDetails struct {
+	CompanyName       string     `json:"companyName" bson:"companyName" validate:"required,max=100"`                         // Name of the company
+	IsCurrentEmployer bool       `json:"isCurrentEmployer" bson:"isCurrentEmployer" validate:"required,bool"`                // Is the current employer
+	Role              string     `json:"role" bson:"role" validate:"required,max=100"`                                       // Role (e.g., Software Engineer)
+	Responsibilities  string     `json:"responsibilities" bson:"responsibilities" validate:"required,max=100"`               // Job responsibilities
+	StartDate         CustomDate `json:"startDate,omitempty" bson:"startDate,omitempty" validate:"required"`                 // Start date
+	EndDate           CustomDate `json:"endDate,omitempty" bson:"endDate,omitempty" validate:"omitempty,gtefield=StartDate"` // End date
+	Description       string     `json:"description,omitempty" bson:"description,omitempty" validate:"omitempty,max=500"`    // Optional job description
+}
+
 // CustomDate is a type for handling flexible date formats
 type CustomDate struct {
 	time.Time
