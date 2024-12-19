@@ -7,7 +7,7 @@ import (
 )
 
 // ValidateShowUserIntrestOTP validates the OTP verification request
-func ValidateShowUserIntrestOTP(userIntrest *models.UserOTPVerify) []response.ErrorDetail {
+func ValidateShowUserIntrestOTPPlan(userIntrest *models.UserOTPPlanVerify) []response.ErrorDetail {
 	var validationErrors []response.ErrorDetail
 
 	// Initialize validator instance
@@ -49,4 +49,16 @@ func ValidateShowUserIntrestOTP(userIntrest *models.UserOTPVerify) []response.Er
 	}
 
 	return validationErrors
+}
+
+// Custom OTP Length Validator
+func otpLength(fl validator.FieldLevel) bool {
+	otp := fl.Field().Int()
+	// Check if OTP is a 6-digit number
+	return otp >= 100000 && otp <= 999999
+}
+
+// Register the custom validation function
+func RegisterCustomValidators(v *validator.Validate) {
+	_ = v.RegisterValidation("otp_len", otpLength)
 }

@@ -42,6 +42,17 @@ func LoadRoutes() *chi.Mux {
 			planHandler := &handler.Plan{}
 			r.Post("/plan", planHandler.CreatePlan)
 			r.Get("/plans", planHandler.GetAllPlan)
+			r.Get("/plan/{uuid}", planHandler.GetOne)
+
+			unAvailableAreaHandler := &handler.UnAvailableAreaRegister{}
+			r.Post("/customer/unavailable", unAvailableAreaHandler.UnavailavleAreaUserIntrest)
+			r.Get("/customer/unavailable", unAvailableAreaHandler.GetALl)
+
+			planRegisterHandler := &handler.PlanRegister{}
+			r.Post("/plan/register", planRegisterHandler.RegisterUserIntrestForPlan)
+			r.Post("/plan/register/otp", planRegisterHandler.VerifyUserOTPForPlan)
+			r.Post("/plan/register/resend", planRegisterHandler.ResendUserOTPForPlan)
+			r.Get("/plans/register", planRegisterHandler.GetALl)
 
 			jobHandler := &handler.JobHandler{}
 
@@ -107,8 +118,8 @@ func LoadRoutes() *chi.Mux {
 		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT,PATCH, DELETE")
 		w.Header().Set("Access-Control-Allow-Headers", "Authorization, Content-Type, Strict-Auth-Key")
-		w.Header().Set("Access-Control-Max-Age", "3600") // Optional: caches the preflight response for 1 hour
-		w.WriteHeader(http.StatusNoContent)              // 204 No Content
+		w.Header().Set("Access-Control-Max-Age", "3600")
+		w.WriteHeader(http.StatusNoContent)
 	})
 
 	return r

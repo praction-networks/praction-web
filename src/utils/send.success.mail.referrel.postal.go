@@ -127,7 +127,7 @@ func generateEmailBodyForReffredBy(referrerName, refrelCoupon string, referrels 
 <body>
     <div class="container">
 		<div class="logo">
-            <img src="https://praction.in/assets/images/logo.png" alt="Praction Networks">
+            <img src="https://praction.in/assets/images/logo.png" alt="Praction Networks" style="max-width: 300px;" class="CtoWUD">
         </div>
         <h2>Thank You for Your Referral, {{.ReferrerName}}!</h2>
         <p>Dear {{.ReferrerName}},</p>

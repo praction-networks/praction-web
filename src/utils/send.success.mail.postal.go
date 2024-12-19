@@ -106,7 +106,7 @@ func generateEmailBody(name, mobile, email string, pinCode int64) (string, error
 <body>
     <div class="container">
 	    <div class="logo">
-            <img src="https://praction.in/assets/images/logo.png" alt="Praction Networks">
+            <img src="https://praction.in/assets/images/logo.png" alt="Praction Networks" style="max-width: 300px;" class="CtoWUD">
         </div>
         <h2>Thank You for Your Interest!</h2>
         <p>Dear {{.Name}},</p>

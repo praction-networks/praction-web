@@ -12,9 +12,9 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func GetUserDetailsFromDB(userDara *models.UserOTPResend) (models.UserInterest, error) {
+func GetUserDetailsFromDBForPlan(userDara *models.UserOTPPlanResend) (models.AvailableUserRequest, error) {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("UserIntrest")
+	collection := client.Database("practionweb").Collection("UserPlanIntrest")
 
 	// Context with timeout to avoid indefinite hanging
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -22,25 +22,30 @@ func GetUserDetailsFromDB(userDara *models.UserOTPResend) (models.UserInterest, 
 
 	// Find user by email or mobile
 	query := bson.M{
-		"$or": []bson.M{
-			{"email": userDara.Email},
-			{"mobile": userDara.Mobile},
+		"$and": []bson.M{
+			{
+				"$or": []bson.M{
+					{"email": userDara.Email},
+					{"mobile": userDara.Mobile},
+				},
+			},
+			{"planID": userDara.PlanID},
 		},
 	}
 
-	var existingUser models.UserInterest
+	var existingUser models.AvailableUserRequest
 	err := collection.FindOne(ctx, query).Decode(&existingUser)
 
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
 			// No matching user found
 			logger.Warn("No matching user found in the database", "Query", query)
-			return models.UserInterest{}, fmt.Errorf("user not found in database")
+			return models.AvailableUserRequest{}, fmt.Errorf("user not found in database")
 		}
 
 		// Handle unexpected MongoDB errors
 		logger.Error("Error querying the database", "Error", err)
-		return models.UserInterest{}, fmt.Errorf("database error: unable to fetch user data")
+		return models.AvailableUserRequest{}, fmt.Errorf("database error: unable to fetch user data")
 	}
 
 	newExpireTime := time.Now().Add(30 * time.Minute) // Set new expiration time (e.g., 5 minutes from now)
@@ -54,8 +59,10 @@ func GetUserDetailsFromDB(userDara *models.UserOTPResend) (models.UserInterest, 
 	_, updateErr := collection.UpdateOne(ctx, query, update)
 	if updateErr != nil {
 		logger.Error("Failed to update OTP expiration time", "Error", updateErr)
-		return models.UserInterest{}, fmt.Errorf("database error: unable to update OTP expiration time")
+		return models.AvailableUserRequest{}, fmt.Errorf("database error: unable to update OTP expiration time")
 	}
+
+	logger.Info("OTP expiration time updated successfully", "User", existingUser.Email, "NewExpireTime", newExpireTime)
 
 	return existingUser, nil
 

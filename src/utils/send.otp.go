@@ -21,7 +21,7 @@ func SendOTP(email string, mobile string, otp int64, retryType string, resend bo
 		}
 
 		// Send OTP via SMS
-		errMsg91 := MSG91ReSendOTP(mobileNum, retryType)
+		errMsg91 := MSG91ReSendOTP(mobileNum, retryType, otp)
 
 		if errMsg91 != nil {
 			logger.Warn("Failed to send OTP via SMS; user can use email OTP for verification", "Email", email, "Mobile", mobileWithCode, "Error", errMsg91)
@@ -45,7 +45,7 @@ func SendOTP(email string, mobile string, otp int64, retryType string, resend bo
 		}
 
 		// Send OTP via SMS
-		errMsg91 := MSG91ReSendOTP(mobileNum, retryType)
+		errMsg91 := MSG91ReSendOTP(mobileNum, retryType, otp)
 
 		// Send OTP via email
 		errPostal := OTPOverPostalMail([]string{email}, otp)

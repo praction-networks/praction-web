@@ -4,12 +4,15 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/service"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/validator"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type Plan struct{}
@@ -82,4 +85,41 @@ func (p *Plan) GetAllPlan(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.SendSuccess(w, plans, http.StatusOK)
+}
+
+func (p *Plan) GetOne(w http.ResponseWriter, r *http.Request) {
+	// Extract the ID from the URL
+	uuid := chi.URLParam(r, "uuid")
+	if uuid == "" {
+		logger.Error("plan uuid is required to fetch plan")
+
+		response.SendBadRequestError(w, "Plan ID is Required")
+		return
+	}
+
+	plan, err := service.GetOnePlanByUUID(r.Context(), uuid)
+
+	if err != nil {
+		switch {
+		case errors.Is(err, mongo.ErrNoDocuments):
+			logger.Warn("No plans found in the database.")
+			response.SendNotFoundError(w, "No Plan with shared UUID")
+			return
+		case strings.Contains(err.Error(), "decoding plan"):
+			logger.Warn("Decoding error", "Error:", err)
+			response.SendServiceUnavailableError(w, "fail to decode plan")
+			return
+		case strings.Contains(err.Error(), "error fetching plans"):
+			logger.Warn("Database fetch error:", "Error:", err)
+			response.SendServiceUnavailableError(w, "fail to connect with db")
+			return
+		default:
+			logger.Error("An unexpected error occurred:", "Error:", err)
+			response.SendInternalServerError(w, "Internal Server error")
+			return
+		}
+	}
+
+	logger.Info("Retrieved Plan Specific:", "Plan", plan)
+	response.SendSuccess(w, plan, http.StatusOK)
 }

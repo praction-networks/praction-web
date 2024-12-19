@@ -7,14 +7,11 @@ import (
 )
 
 // ValidateShowUserIntrestOTP validates the OTP verification request
-func ValidateShowUserIntrestOTP(userIntrest *models.UserOTPVerify) []response.ErrorDetail {
+func ValidateShowUserIntrestOTPResndPlan(userIntrest *models.UserOTPPlanResend) []response.ErrorDetail {
 	var validationErrors []response.ErrorDetail
 
 	// Initialize validator instance
 	v := validator.New()
-
-	// Register custom validators
-	RegisterCustomValidators(v)
 
 	// Perform basic struct validation
 	err := v.Struct(userIntrest)
@@ -28,8 +25,8 @@ func ValidateShowUserIntrestOTP(userIntrest *models.UserOTPVerify) []response.Er
 				message = e.Field() + " must be exactly " + e.Param() + " characters"
 			case "email":
 				message = e.Field() + " should be a valid email address"
-			case "otp_len":
-				message = e.Field() + " must be a 6-digit OTP"
+			case "oneof":
+				message = e.Field() + " must be one of: " + e.Param()
 			default:
 				message = e.Field() + " validation failed on the '" + e.Tag() + "' tag"
 			}

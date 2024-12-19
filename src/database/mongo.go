@@ -275,6 +275,34 @@ func CreateIndexesForBlogTag(ctx context.Context, dbName, collectionName string)
 	return nil
 }
 
+func CreateIndexesForPlanUserIntrest(ctx context.Context, dbName, collectionName string) error {
+	collection := client.Database(dbName).Collection(collectionName)
+
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.M{"mobile": 1}, // Unique index on category
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"email": 1}, // Unique index on mobile
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"uuid": 1}, // Unique index on mobile
+			Options: options.Index().SetUnique(true),
+		},
+	}
+
+	_, err := collection.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		return fmt.Errorf("error creating indexes: %v", err)
+	}
+	// Log success
+	logger.Info(fmt.Sprintf("Indexes created for collection: %s", collectionName))
+
+	return nil
+}
+
 func CreateIndexesForBlogComments(ctx context.Context, dbName, collectionName string) error {
 	collection := client.Database(dbName).Collection(collectionName)
 

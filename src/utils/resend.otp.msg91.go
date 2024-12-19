@@ -12,7 +12,7 @@ import (
 )
 
 // MSG91ReSendOTP resends an OTP using the MSG91 service
-func MSG91ReSendOTP(mobile int64, retryType string) error {
+func MSG91ReSendOTP(mobile int64, retryType string, otp int64) error {
 	logger.Info("Resending OTP to user via mobile", "Mobile", mobile)
 
 	// Get MSG91 configuration
@@ -74,5 +74,15 @@ func MSG91ReSendOTP(mobile int64, retryType string) error {
 	}
 
 	logger.Error("OTP resend failed", "Mobile", mobile, "StatusCode", resp.StatusCode, "Message", msg91Response.Message)
+
+	if msg91Response.Message == "otp_expired" {
+
+		err := MSG91SendOTP(mobile, otp)
+
+		if err != nil {
+			logger.Error(" Fail to Send OTP to User", "Mobile", mobile)
+		}
+
+	}
 	return errors.New(msg91Response.Message)
 }

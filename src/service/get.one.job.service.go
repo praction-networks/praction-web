@@ -43,6 +43,6 @@ func GetOneJob(ctx context.Context, id string) (*models.Job, error) {
 		return nil, fmt.Errorf("error fetching job details: %w", err)
 	}
 
-	logger.Info(fmt.Sprintf("Retrieved blog with ID: %s successfully.", id))
+	logger.Info(fmt.Sprintf("Retrieved job with ID: %s successfully.", id))
 	return &job, nil
 }
