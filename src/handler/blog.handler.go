@@ -115,9 +115,8 @@ func (bh *BlogHandler) GetOneBlogHandler(w http.ResponseWriter, r *http.Request)
 	// Extract the ID from the URL
 	id := chi.URLParam(r, "id")
 	if id == "" {
-		logger.Error("Blog ID is required to fetch Blog")
-
-		response.SendBadRequestError(w, "Blog ID is Required")
+		logger.Error("Blog identifier (ID or slug) is required")
+		response.SendBadRequestError(w, "Blog identifier (ID or slug) is required")
 		return
 	}
 
@@ -233,4 +232,205 @@ func (bh *BlogHandler) AddShare(w http.ResponseWriter, r *http.Request) {
 
 	response.SendCreated(w)
 
+}
+
+func (bh *BlogHandler) DeleteBlogHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract the Blog ID from the URL parameter
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		logger.Error("Blog ID is missing in the request")
+		response.SendBadRequestError(w, "Blog ID is required to delete the blog")
+		return
+	}
+
+	// Attempt to delete the blog using the DeleteOneBlog function
+	err := service.DeleteOneBlog(r.Context(), id)
+	if err != nil {
+		// Check for specific error cases to provide meaningful responses
+		if strings.Contains(err.Error(), "invalid blog ID format") {
+			logger.Error("Invalid blog ID format", "blogID", id, "error", err)
+			response.SendBadRequestError(w, "Invalid blog ID format")
+			return
+		}
+
+		if strings.Contains(err.Error(), "no blog found") {
+			logger.Warn("Blog not found for deletion", "blogID", id)
+			response.SendNotFoundError(w, "Blog not found with the given ID")
+			return
+		}
+
+		// Log and send a generic server error for unexpected issues
+		logger.Error("Failed to delete blog", "blogID", id, "error", err)
+		response.SendInternalServerError(w, "Failed to delete the blog")
+		return
+	}
+
+	// Log success and send a success response
+	logger.Info("Blog deleted successfully", "blogID", id)
+	response.SendSuccess(w, "Blog deleted successfully", http.StatusOK)
+}
+
+func (bh *BlogHandler) UpdateBlogHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract Blog ID from the URL
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		logger.Error("Blog ID is missing in the request")
+		response.SendBadRequestError(w, "Blog ID is required to update the blog")
+		return
+	}
+
+	// Parse the request body into a BlogUpdate struct
+	var blogUpdate models.BlogUpdate
+	if err := json.NewDecoder(r.Body).Decode(&blogUpdate); err != nil {
+		logger.Error("Error parsing request body", "error", err)
+		response.SendBadRequestError(w, "Invalid request payload for blog update")
+		return
+	}
+
+	// Validate the parsed BlogUpdate struct
+	validationErrors := validator.ValidateUpdateBlog(&blogUpdate)
+	if len(validationErrors) > 0 {
+		logger.Error("Validation failed for Blog attributes", "validationErrors", validationErrors)
+		response.SendError(w, validationErrors, http.StatusBadRequest)
+		return
+	}
+
+	// Call the service to update the blog
+	err := service.UpdateOneBlog(r.Context(), id, &blogUpdate)
+	if err != nil {
+		// Handle specific error cases from UpdateOneBlog
+		switch {
+		case strings.Contains(err.Error(), "invalid blog ID format"):
+			logger.Error("Invalid blog ID format", "blogID", id, "error", err)
+			response.SendBadRequestError(w, "Invalid blog ID format")
+			return
+		case strings.Contains(err.Error(), "no blog found"):
+			logger.Warn("Blog not found for update", "blogID", id)
+			response.SendNotFoundError(w, "Blog not found with the given ID")
+			return
+		case strings.Contains(err.Error(), "did not modify any fields"):
+			logger.Warn("No changes made to the blog during update", "blogID", id)
+			response.SendBadRequestError(w, "No changes made to the blog")
+			return
+		default:
+			// Generic error handler for unexpected issues
+			logger.Error("Failed to update blog", "blogID", id, "error", err)
+			response.SendInternalServerError(w, "Failed to update the blog")
+			return
+		}
+	}
+
+	// Success response
+	logger.Info("Blog updated successfully", "blogID", id)
+	response.SendSuccess(w, "Blog updated successfully", http.StatusOK)
+}
+
+func (bh *BlogHandler) ApproveBlogHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract Blog ID from the URL
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		logger.Error("Blog ID is missing in the request")
+		response.SendBadRequestError(w, "Blog ID is required to approve the blog")
+		return
+	}
+
+	// Parse the request body into a BlogApproval struct
+	var blogApproval models.BlogApproval
+	if err := json.NewDecoder(r.Body).Decode(&blogApproval); err != nil {
+		logger.Error("Error parsing request body", "error", err)
+		response.SendBadRequestError(w, "Invalid request payload for blog approval")
+		return
+	}
+
+	// Validate the parsed BlogApproval struct
+	validationErrors := validator.ValidateApproveBlog(&blogApproval)
+	if len(validationErrors) > 0 {
+		logger.Error("Validation failed for BlogApproval input", "validationErrors", validationErrors)
+		response.SendError(w, validationErrors, http.StatusBadRequest)
+		return
+	}
+
+	// Call the service to approve the blog
+	err := service.ApproveBlog(r.Context(), id, blogApproval.Approve)
+	if err != nil {
+		// Handle specific error cases from ApproveBlog
+		switch {
+		case strings.Contains(err.Error(), "invalid blog ID format"):
+			logger.Error("Invalid blog ID format", "blogID", id, "error", err)
+			response.SendBadRequestError(w, "Invalid blog ID format")
+			return
+		case strings.Contains(err.Error(), "no blog found"):
+			logger.Warn("Blog not found for approval", "blogID", id)
+			response.SendNotFoundError(w, "Blog not found with the given ID")
+			return
+		case strings.Contains(err.Error(), "did not modify any fields"):
+			logger.Warn("No changes made to the blog during approval", "blogID", id)
+			response.SendBadRequestError(w, "No changes made to the blog")
+			return
+		default:
+			// Generic error handler for unexpected issues
+			logger.Error("Failed to approve blog", "blogID", id, "error", err)
+			response.SendInternalServerError(w, "Failed to approve the blog")
+			return
+		}
+	}
+
+	// Success response
+	logger.Info("Blog approved successfully", "blogID", id)
+	response.SendSuccess(w, "Blog approved successfully", http.StatusOK)
+}
+
+func (bh *BlogHandler) PublishBlogHandler(w http.ResponseWriter, r *http.Request) {
+	// Extract Blog ID from the URL
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		logger.Error("Blog ID is missing in the request")
+		response.SendBadRequestError(w, "Blog ID is required to publish the blog")
+		return
+	}
+
+	// Parse the request body into a BlogPublish struct
+	var blogPublish models.BlogPublish
+	if err := json.NewDecoder(r.Body).Decode(&blogPublish); err != nil {
+		logger.Error("Error parsing request body", "error", err)
+		response.SendBadRequestError(w, "Invalid request payload for blog publishing")
+		return
+	}
+
+	// Validate the parsed BlogPublish struct
+	validationErrors := validator.ValidatePublishBlog(&blogPublish)
+	if len(validationErrors) > 0 {
+		logger.Error("Validation failed for BlogPublish input", "validationErrors", validationErrors)
+		response.SendError(w, validationErrors, http.StatusBadRequest)
+		return
+	}
+
+	// Call the service to publish the blog
+	err := service.PublishBlog(r.Context(), id, blogPublish.Publish)
+	if err != nil {
+		// Handle specific error cases from PublishBlog
+		switch {
+		case strings.Contains(err.Error(), "invalid blog ID format"):
+			logger.Error("Invalid blog ID format", "blogID", id, "error", err)
+			response.SendBadRequestError(w, "Invalid blog ID format")
+			return
+		case strings.Contains(err.Error(), "no blog found"):
+			logger.Warn("Blog not found for publishing", "blogID", id)
+			response.SendNotFoundError(w, "Blog not found with the given ID")
+			return
+		case strings.Contains(err.Error(), "did not modify any fields"):
+			logger.Warn("No changes made to the blog during publishing", "blogID", id)
+			response.SendBadRequestError(w, "No changes made to the blog")
+			return
+		default:
+			// Generic error handler for unexpected issues
+			logger.Error("Failed to publish blog", "blogID", id, "error", err)
+			response.SendInternalServerError(w, "Failed to publish the blog")
+			return
+		}
+	}
+
+	// Success response
+	logger.Info("Blog published successfully", "blogID", id)
+	response.SendSuccess(w, "Blog published successfully", http.StatusOK)
 }

@@ -77,14 +77,33 @@ type Comments struct {
 	IsDeleted   bool               `json:"-" bson:"isDeleted"`
 }
 
-type Image struct {
-	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	UUID      string             `json:"uuid" bson:"uuid"`
-	FileID    string             `json:"fileID" bson:"fileID"`
-	FileName  string             `json:"fileName" bson:"FileName"`
-	ImageURL  string             `json:"imageURL" bson:"imageURL"`
-	CreatedAt time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt time.Time          `json:"-" bson:"updated_at"`
-	IsActive  bool               `json:"-" bson:"IsActive" validate:"required"`
-	IsDeleted bool               `json:"-" bson:"isDeleted"`
+// Post represents the structure for a blog post
+type BlogUpdate struct {
+	BlogTitle           string               `json:"blogTitle" bson:"blogTitle" validate:"required,min=2,max=100"`
+	Slug                string               `json:"slug" bson:"slug" validate:"required,slug"`
+	BlogImage           string               `json:"blogImage,omitempty" bson:"blogImage,omitempty" validate:"omitempty,uuid4"`
+	BlogDescription     string               `json:"blogDescription" bson:"blogDescription" validate:"required,min=10,max=7500"`
+	BlogDescriptionType string               `json:"blogDescriptionType" bson:"blogDescriptionType" validate:"required,oneof=html text"`
+	Tag                 []string             `json:"tag" bson:"tag" validate:"required,dive,alphanumunicode"`
+	Category            []string             `json:"category" bson:"category" validate:"required,dive"`
+	MetaDescription     string               `json:"metaDescription,omitempty" bson:"metaDescription,omitempty" validate:"omitempty,max=160"`
+	MetaKeywords        []string             `json:"metaKeywords,omitempty" bson:"metaKeywords,omitempty" validate:"omitempty,dive,max=30"`
+	EmbeddedMedia       []string             `json:"embeddedMedia,omitempty" bson:"embeddedMedia,omitempty" validate:"omitempty,dive,http_url"`
+	Summary             string               `json:"summary,omitempty" bson:"summary,omitempty" validate:"omitempty,max=250"`
+	FeatureImage        string               `json:"featureImage,omitempty" bson:"featureImage,omitempty" validate:"omitempty,uuid4"`
+	UpdatedAt           time.Time            `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
+	Status              string               `json:"status" bson:"status" validate:"omitempty,oneof=draft published"`
+	View                int64                `json:"view" bson:"view" validate:"gte=0"`
+	CommentsCount       int64                `json:"commentsCount" bson:"commentsCount" validate:"gte=0"`
+	Shares              int64                `json:"shares" bson:"shares" validate:"gte=0"`
+	CommentsList        []primitive.ObjectID `json:"commentsList" bson:"commentsList"`
+	Comments            []Comments           `json:"comments" bson:"comments"`
+}
+
+type BlogPublish struct {
+	Publish bool `json:"publish" validate:"required"`
+}
+
+type BlogApproval struct {
+	Approve bool `json:"approve" validate:"required"`
 }

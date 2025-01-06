@@ -81,6 +81,10 @@ func LoadRoutes() *chi.Mux {
 			r.Get("/blog/{id}", blogHandler.GetOneBlogHandler)
 			r.Post("/blog/view", blogHandler.AddView)
 			r.Post("/blog/share", blogHandler.AddShare)
+			r.Put("/blog/{id}", blogHandler.UpdateBlogHandler)
+			r.Delete("/blog/{id}", blogHandler.DeleteBlogHandler)
+			r.Put("/blog/approve/{id}", blogHandler.ApproveBlogHandler)
+			r.Put("/blog/publish/{id}", blogHandler.PublishBlogHandler)
 
 			blogCategoryHandler := &handler.BlogCategoryHandler{}
 
@@ -94,7 +98,8 @@ func LoadRoutes() *chi.Mux {
 
 			// Image upload route
 			imageUploadHandler := handler.ImageUploadHandler{}
-			r.Post("/blog/image/upload", imageUploadHandler.UploadImage)
+			r.Post("/image/upload", imageUploadHandler.UploadImage)
+			r.Get("/image", imageUploadHandler.GetAllImage)
 
 			blogCommentsHandler := &handler.BlogCommentsHandler{}
 

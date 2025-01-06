@@ -145,7 +145,7 @@ func (client *CloudinaryClient) CheckIfImageExists(publicID string) (bool, error
 }
 
 // UploadImage uploads an image to Cloudinary and returns the URL.
-func (client *CloudinaryClient) UploadImage(file io.Reader, fileName string, folder string) (ReturnImageMeta, error) {
+func (client *CloudinaryClient) UploadImage(file io.Reader, fileName string, folder string, name string, tag string) (ReturnImageMeta, error) {
 	// Step 1: Ensure file is valid and not empty
 	if file == nil {
 		logger.Error("File is nil", "fileName", fileName)
@@ -218,7 +218,7 @@ func (client *CloudinaryClient) UploadImage(file io.Reader, fileName string, fol
 	logger.Info("Image uploaded successfully", "imageURL", resp.SecureURL)
 
 	// Step 6: Save the image metadata (including perceptual hash) to the database
-	ImageMeta, err := service.SaveblogImage(resp.DisplayName, resp.PublicID, resp.SecureURL)
+	ImageMeta, err := service.SaveblogImage(resp.DisplayName, resp.PublicID, resp.SecureURL, name, tag)
 	if err != nil {
 		logger.Error("Failed to upload image metadata to the database", "error", err.Error())
 		return ReturnImageMeta{}, fmt.Errorf("unable to upload image metadata to Database: %v", err)

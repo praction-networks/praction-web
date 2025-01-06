@@ -18,18 +18,26 @@ func GetOneBlog(ctx context.Context, id string) (*models.Blog, error) {
 	collection := client.Database("practionweb").Collection("Blog")
 
 	// Convert the string ID to a MongoDB ObjectID
+	var filter bson.M
 	objectID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		logger.Error(fmt.Sprintf("Invalid blog ID format: %v", err))
-		return nil, fmt.Errorf("invalid blog ID format: %w", err)
-	}
-	// Build the query filter
-	filter := bson.M{
-		"_id":        objectID,
-		"isApproved": true,
-		"isActive":   true,
-		"isDeleted":  false,
-		"status":     "published",
+	if err == nil {
+		// Valid ObjectID
+		filter = bson.M{
+			"_id":        objectID,
+			"isApproved": true,
+			"isActive":   true,
+			"isDeleted":  false,
+			"status":     "published",
+		}
+	} else {
+		// Treat as slug
+		filter = bson.M{
+			"slug":       id,
+			"isApproved": true,
+			"isActive":   true,
+			"isDeleted":  false,
+			"status":     "published",
+		}
 	}
 
 	// Query the collection

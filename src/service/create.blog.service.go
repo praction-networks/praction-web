@@ -143,7 +143,7 @@ func getBlogByName(ctx context.Context, blogTitle string) error {
 
 func getImageByUUID(ctx context.Context, blogImageUUID, featureImageUUID string) (string, string, error) {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("BlogImage")
+	collection := client.Database("practionweb").Collection("Image")
 
 	// Find BlogImage using blogImageUUID
 	filterBlogImage := bson.D{{Key: "uuid", Value: blogImageUUID}}

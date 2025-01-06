@@ -23,9 +23,6 @@ func ParseQueryParams(query url.Values) (PaginationParams, error) {
 	}
 
 	sortOrder := 1 // Default to ascending
-	if query.Get("sortOrder") == "desc" {
-		sortOrder = -1
-	}
 
 	// Parse filters dynamically
 	filters := make(map[string]string)

@@ -98,6 +98,19 @@ func InitializeMongo(ctx context.Context) error {
 	if err != nil {
 		return fmt.Errorf("error while creating indexes: %v", err)
 	}
+
+	err = CreateIndexesforImage(ctx, cfg.DBName, "Image")
+
+	if err != nil {
+		return fmt.Errorf("error while creating indexes: %v", err)
+	}
+
+	err = CreateIndexesForBlog(ctx, cfg.DBName, "Blog")
+
+	if err != nil {
+		return fmt.Errorf("error while creating indexes: %v", err)
+	}
+
 	logger.Info("Index created for User collection successfully.")
 	return nil
 }
@@ -184,6 +197,30 @@ func CreateIndexesForPlan(ctx context.Context, dbName, collectionName string) er
 	return nil
 }
 
+func CreateIndexesforImage(ctx context.Context, dbName, collectionName string) error {
+	collection := client.Database(dbName).Collection(collectionName)
+
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.M{"name": 1}, // Unique index on email
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"uuid": 1}, // Unique index on mobile
+			Options: options.Index().SetUnique(true),
+		},
+	}
+
+	_, err := collection.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		return fmt.Errorf("error creating indexes: %v", err)
+	}
+	// Log success
+	logger.Info(fmt.Sprintf("Indexes created for collection: %s", collectionName))
+
+	return nil
+}
+
 func CreateIndexesForBlogCategory(ctx context.Context, dbName, collectionName string) error {
 	collection := client.Database(dbName).Collection(collectionName)
 
@@ -251,12 +288,44 @@ func CreateIndexesForServiceArea(ctx context.Context, dbName, collectionName str
 	return nil
 }
 
+func CreateIndexesForBlog(ctx context.Context, dbName, collectionName string) error {
+	collection := client.Database(dbName).Collection(collectionName)
+
+	indexes := []mongo.IndexModel{
+		{
+			Keys:    bson.M{"blogTitle": 1}, // Unique index on category
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"slug": 1}, // Unique index on mobile
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"uuid": 1}, // Unique index on mobile
+			Options: options.Index().SetUnique(true),
+		},
+	}
+
+	_, err := collection.Indexes().CreateMany(ctx, indexes)
+	if err != nil {
+		return fmt.Errorf("error creating indexes: %v", err)
+	}
+	// Log success
+	logger.Info(fmt.Sprintf("Indexes created for collection: %s", collectionName))
+
+	return nil
+}
+
 func CreateIndexesForBlogTag(ctx context.Context, dbName, collectionName string) error {
 	collection := client.Database(dbName).Collection(collectionName)
 
 	indexes := []mongo.IndexModel{
 		{
 			Keys:    bson.M{"name": 1}, // Unique index on category
+			Options: options.Index().SetUnique(true),
+		},
+		{
+			Keys:    bson.M{"slug": 1}, // Unique index on mobile
 			Options: options.Index().SetUnique(true),
 		},
 		{

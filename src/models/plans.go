@@ -14,15 +14,17 @@ type Plan struct {
 }
 
 type PlanSpecific struct {
-	PlanID       string          `json:"planID" bson:"planID"`
-	Name         string          `json:"name" bson:"name" validate:"required,max=30"`
-	PlanCategory string          `json:"planCategory" bson:"planCategory" validate:"max=20"`
-	Speed        float64         `json:"speed" bson:"speed" validate:"required,gt=0"`
-	SpeedUnit    string          `json:"speedUnit" bson:"speedUnit" validate:"required,oneof=Mbps Gbps"`
-	Price        float64         `json:"price" bson:"price" validate:"required,gt=0"`
-	Period       int             `json:"period" bson:"period" validate:"required,gt=0"`
-	PeriodUnit   string          `json:"periodUnit" bson:"periodUnit" validate:"required,oneof=Month Year Day Days Months Years"`
-	Offering     map[string]bool `json:"offering" bson:"offering" validate:"required"`
+	PlanID       string               `json:"planID" bson:"planID"`
+	Name         string               `json:"name" bson:"name" validate:"required,max=30"`
+	PlanCategory string               `json:"planCategory" bson:"planCategory" validate:"max=20"`
+	Speed        float64              `json:"speed" bson:"speed" validate:"required,gt=0"`
+	SpeedUnit    string               `json:"speedUnit" bson:"speedUnit" validate:"required,oneof=Mbps Gbps"`
+	Price        float64              `json:"price" bson:"price" validate:"required,gt=0"`
+	Period       int                  `json:"period" bson:"period" validate:"required,gt=0"`
+	PeriodUnit   string               `json:"periodUnit" bson:"periodUnit" validate:"required,oneof=Month Year Day Days Months Years"`
+	Offering     map[string]bool      `json:"offering" bson:"offering" validate:"required"`
+	OTTs         []primitive.ObjectID `json:"otts,omitempty" bson:"otts,omitempty"`
+	OttDetails   []Image              `json:"ottDetails,omitempty" bson:"-"`
 }
 
 type AvailableUserRequest struct {

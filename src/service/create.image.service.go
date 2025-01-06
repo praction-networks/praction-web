@@ -12,11 +12,13 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func SaveblogImage(ImageName, ImageID, ImageURL string) (models.Image, error) {
+func SaveblogImage(ImageName, ImageID, ImageURL string, name string, tag string) (models.Image, error) {
 
 	var Image models.Image
 	Image.UUID = uuid.New().String()
 	Image.FileName = ImageName
+	Image.Name = name
+	Image.Tag = tag
 	Image.FileID = ImageID
 	Image.ImageURL = ImageURL
 	Image.CreatedAt = time.Now()
@@ -39,9 +41,12 @@ func SaveblogImage(ImageName, ImageID, ImageURL string) (models.Image, error) {
 func insertGoogleImageIntoDB(ctx context.Context, image models.Image) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("BlogImage")
+	collection := client.Database("practionweb").Collection("Image")
 
 	// Insert the user document into the collection
+
+	logger.Info("Image", "ImageData", image)
+
 	_, err := collection.InsertOne(ctx, image)
 	if err != nil {
 
