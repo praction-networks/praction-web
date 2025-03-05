@@ -81,7 +81,7 @@ type Comments struct {
 type BlogUpdate struct {
 	BlogTitle           string               `json:"blogTitle" bson:"blogTitle" validate:"required,min=2,max=100"`
 	Slug                string               `json:"slug" bson:"slug" validate:"required,slug"`
-	BlogImage           string               `json:"blogImage,omitempty" bson:"blogImage,omitempty" validate:"omitempty,uuid4"`
+	BlogImage           string               `json:"blogImage,omitempty" bson:"blogImage,omitempty" validate:"omitempty,uuid_or_url"`
 	BlogDescription     string               `json:"blogDescription" bson:"blogDescription" validate:"required,min=10,max=7500"`
 	BlogDescriptionType string               `json:"blogDescriptionType" bson:"blogDescriptionType" validate:"required,oneof=html text"`
 	Tag                 []string             `json:"tag" bson:"tag" validate:"required,dive,alphanumunicode"`
@@ -90,7 +90,7 @@ type BlogUpdate struct {
 	MetaKeywords        []string             `json:"metaKeywords,omitempty" bson:"metaKeywords,omitempty" validate:"omitempty,dive,max=30"`
 	EmbeddedMedia       []string             `json:"embeddedMedia,omitempty" bson:"embeddedMedia,omitempty" validate:"omitempty,dive,http_url"`
 	Summary             string               `json:"summary,omitempty" bson:"summary,omitempty" validate:"omitempty,max=250"`
-	FeatureImage        string               `json:"featureImage,omitempty" bson:"featureImage,omitempty" validate:"omitempty,uuid4"`
+	FeatureImage        string               `json:"featureImage,omitempty" bson:"featureImage,omitempty" validate:"omitempty,uuid_or_url"`
 	UpdatedAt           time.Time            `json:"updatedAt,omitempty" bson:"updatedAt,omitempty"`
 	Status              string               `json:"status" bson:"status" validate:"omitempty,oneof=draft published"`
 	View                int64                `json:"view" bson:"view" validate:"gte=0"`

@@ -12,11 +12,11 @@ import (
 )
 
 // AuthenticateUser checks the username and password and returns the user if valid
-func AuthenticateUser(ctx context.Context, username, password string) (*models.User, error) {
+func AuthenticateUser(ctx context.Context, username, password string) (*models.Admin, error) {
 	client := database.GetClient()
 	collection := client.Database("practionweb").Collection("User")
 
-	var user models.User
+	var user models.Admin
 	err := collection.FindOne(ctx, bson.M{"username": username}).Decode(&user)
 	if err != nil {
 		// Return a nil pointer to User, and the error

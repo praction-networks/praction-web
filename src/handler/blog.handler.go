@@ -111,6 +111,28 @@ func (bh *BlogHandler) GetBlogHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (bh *BlogHandler) GeAlltBlogHandler(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+	params, err := utils.ParseQueryParams(r.URL.Query())
+	if err != nil {
+		logger.Error("Error parsing query parameters", "Error", err)
+		response.SendBadRequestError(w, "Invalid query parameters")
+		return
+	}
+
+	// Call the service to get all plans
+	blogs, err := service.GetAdminAllBlogService(ctx, params)
+	if err != nil {
+		logger.Error("Failed to retrieve blogs: " + err.Error())
+		http.Error(w, "Failed to retrieve blogs", http.StatusInternalServerError)
+		return
+	}
+
+	response.SendSuccess(w, blogs, http.StatusOK)
+
+}
+
 func (bh *BlogHandler) GetOneBlogHandler(w http.ResponseWriter, r *http.Request) {
 	// Extract the ID from the URL
 	id := chi.URLParam(r, "id")

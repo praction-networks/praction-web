@@ -9,7 +9,7 @@ import (
 )
 
 // GenerateJWT generates a JWT token for the authenticated user
-func GenerateJWT(user *models.User) (string, error) {
+func GenerateJWT(user *models.Admin) (string, error) {
 
 	secret := GetJWTSECRET()
 
@@ -21,7 +21,7 @@ func GenerateJWT(user *models.User) (string, error) {
 		"username": user.Username,
 		"email":    user.Email,
 		"role":     user.Role,
-		"exp":      time.Now().Add(90 * 24 * time.Hour).Unix(), // Token expires in 24 hours
+		"exp":      time.Now().Add(365 * 24 * time.Hour).Unix(), // Token expires in 365 days hours
 	}
 
 	// Create a new JWT token with the claims

@@ -11,6 +11,7 @@ import (
 	"github.com/praction-networks/quantum-ISP365/webapp/src/config"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/database"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
+	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/router"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/service"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -38,12 +39,27 @@ func New() (*App, error) {
 	err := database.InitializeMongo(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to initialize MongoDB: %w", err)
+
 	}
 
-	err = service.CreateUser(ctx, "praction", "Lcmanager123", "akshay.kumar@praction.in", "Akshay", "Chauhan", "admin")
+	user := models.Admin{
+		Username:  "praction",
+		Password:  "Lcmanager123",
+		Mobile:    "9891215959",
+		Email:     "akshay.kumar@praction.in",
+		FirstName: "Akshay",
+		LastName:  "Chauhan",
+		Role:      "admin",
+	}
+
+	err = service.CreateUser(ctx, user)
 
 	if err != nil {
-		logger.Warn("Failed to Create user or user already exist")
+		if service.IsDuplicateKeyError(err) {
+			logger.Info("User Is already created")
+		} else {
+			logger.Error("Failed to Create user", err)
+		}
 	}
 
 	// Initialize Cloudinary Client

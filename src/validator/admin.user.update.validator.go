@@ -1,20 +1,22 @@
 package validator
 
 import (
+	"regexp"
+
 	"github.com/go-playground/validator/v10"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
 )
 
-// ValidateCreatePlan validates the create plan request and returns error details
-func ValidateCreatePlan(createPlan *models.Plan) []response.ErrorDetail {
+// ValidateupdateAdmin validates the create admin request and returns error details
+func ValidateUpdateAdmin(updateAdmin *models.UpdateAdmin) []response.ErrorDetail {
 	var validationErrors []response.ErrorDetail
 
 	// Initialize validator instance
 	v := validator.New()
 
 	// Perform the validation
-	err := v.Struct(createPlan)
+	err := v.Struct(updateAdmin)
 	if err != nil {
 		for _, e := range err.(validator.ValidationErrors) {
 			var message string
@@ -27,8 +29,10 @@ func ValidateCreatePlan(createPlan *models.Plan) []response.ErrorDetail {
 				message = e.Field() + " must be at least " + e.Param()
 			case "oneof":
 				message = e.Field() + " must be one of: " + e.Param()
-			case "eqfield":
-				message = e.Field() + " must match " + e.Param()
+			case "len":
+				message = e.Field() + " must have exactly " + e.Param() + " characters"
+			case "regexp":
+				message = e.Field() + " must match the required pattern"
 			default:
 				message = e.Field() + " validation failed on the '" + e.Tag() + "' tag"
 			}
@@ -37,6 +41,16 @@ func ValidateCreatePlan(createPlan *models.Plan) []response.ErrorDetail {
 				Message: message,
 			})
 		}
+	}
+
+	// Additional custom validation for Mobile (10 digits starting with 6,7,8,9)
+	mobileRegexp := `^[6-9]\d{9}$`
+	matched, err := regexp.MatchString(mobileRegexp, updateAdmin.Mobile)
+	if err != nil || !matched {
+		validationErrors = append(validationErrors, response.ErrorDetail{
+			Field:   "mobile",
+			Message: "Mobile must be a 10-digit number starting with 6, 7, 8, or 9",
+		})
 	}
 
 	return validationErrors

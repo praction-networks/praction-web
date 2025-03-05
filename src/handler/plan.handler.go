@@ -34,6 +34,7 @@ func (p *Plan) CreatePlan(w http.ResponseWriter, r *http.Request) {
 	if len(validationErrors) > 0 {
 		logger.Error("Validation failed for admin user attributes", "validationErrors", validationErrors)
 		response.SendError(w, validationErrors, http.StatusBadRequest)
+		return
 	}
 
 	logger.Info("User attributes are valid Create Plan now")

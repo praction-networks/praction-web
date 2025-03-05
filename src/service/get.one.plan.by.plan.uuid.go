@@ -44,23 +44,45 @@ func GetOnePlanByUUID(ctx context.Context, planID string) (models.PlanSpecific, 
 		for _, planSpecific := range plan.PlanDetail {
 			if planSpecific.PlanID == planID {
 				var ottDetails []models.Image
+
 				logger.Info(fmt.Sprintf("Found matching PlanSpecific for PlanID: %s", planID))
-				ottsfilter := bson.M{"_id": bson.M{"$in": planSpecific.OTTs}}
-				ottCursor, err := imageCollection.Find(ctx, ottsfilter)
+				if len(planSpecific.OTTs) > 0 {
+					ottsfilter := bson.M{"_id": bson.M{"$in": planSpecific.OTTs}}
+					ottCursor, err := imageCollection.Find(ctx, ottsfilter)
 
-				if err != nil {
-					logger.Error(fmt.Sprintf("Error retrieving OTTs for plan detail %v: %v", planSpecific.Name, err))
-					return models.PlanSpecific{}, fmt.Errorf("error retrieving OTTs for plan detail %v: %w", planSpecific.PlanID, err)
+					if err != nil {
+						logger.Error(fmt.Sprintf("Error retrieving OTTs for plan detail %v: %v", planSpecific.Name, err))
+						return models.PlanSpecific{}, fmt.Errorf("error retrieving OTTs for plan detail %v: %w", planSpecific.PlanID, err)
+					}
+					defer ottCursor.Close(ctx)
+
+					if err := ottCursor.All(ctx, &ottDetails); err != nil {
+						logger.Error(fmt.Sprintf("Error decoding OTTs for plan detail %v: %v", planSpecific.PlanID, err))
+						return models.PlanSpecific{}, fmt.Errorf("error decoding OTTs for plan detail %v: %w", planSpecific.PlanID, err)
+					}
+
+					planSpecific.OttDetails = ottDetails
+					planSpecific.OTTs = nil
 				}
-				defer ottCursor.Close(ctx)
+				var iptvDetails []models.Image
+				if len(planSpecific.IPTVs) > 0 {
+					iptvFilters := bson.M{"_id": bson.M{"$in": planSpecific.IPTVs}}
+					iptvsCursor, err := imageCollection.Find(ctx, iptvFilters)
 
-				if err := ottCursor.All(ctx, &ottDetails); err != nil {
-					logger.Error(fmt.Sprintf("Error decoding OTTs for plan detail %v: %v", planSpecific.PlanID, err))
-					return models.PlanSpecific{}, fmt.Errorf("error decoding OTTs for plan detail %v: %w", planSpecific.PlanID, err)
+					if err != nil {
+						logger.Error(fmt.Sprintf("Error retrieving OTTs for plan detail %v: %v", planSpecific.Name, err))
+						return models.PlanSpecific{}, fmt.Errorf("error retrieving OTTs for plan detail %v: %w", planSpecific.PlanID, err)
+					}
+					defer iptvsCursor.Close(ctx)
+
+					if err := iptvsCursor.All(ctx, &iptvDetails); err != nil {
+						logger.Error(fmt.Sprintf("Error decoding OTTs for plan detail %v: %v", planSpecific.PlanID, err))
+						return models.PlanSpecific{}, fmt.Errorf("error decoding OTTs for plan detail %v: %w", planSpecific.PlanID, err)
+					}
+
+					planSpecific.IPTVDetails = iptvDetails
+					planSpecific.IPTVs = nil
 				}
-
-				planSpecific.OttDetails = ottDetails
-				planSpecific.OTTs = nil
 
 				return planSpecific, nil
 			}

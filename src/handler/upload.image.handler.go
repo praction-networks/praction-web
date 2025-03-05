@@ -132,6 +132,8 @@ func (IU *ImageUploadHandler) GetAllImage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
+	logger.Info("Query is", "Query", params)
+
 	// Call the service to get all plans
 	images, err := service.GetAllImageService(ctx, params)
 	if err != nil {

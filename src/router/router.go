@@ -34,10 +34,40 @@ func LoadRoutes() *chi.Mux {
 
 		authHandler := &handler.User{}
 		r.Post("/login", authHandler.Login)
+		r.Post("/logout", authHandler.Logout)
 
 		// Protected routes
 		r.Group(func(r chi.Router) {
 			r.Use(middlewares.JWTAuthMiddleware) // Apply JWTAuthMiddleware to all routes in this group
+			r.Post("/user/set_password", authHandler.SetPassword)
+			r.Post("/user", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin"}, http.HandlerFunc(authHandler.Create)),
+				).ServeHTTP,
+			))
+
+			r.Get("/user", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin"}, http.HandlerFunc(authHandler.GetAll)),
+				).ServeHTTP,
+			))
+
+			r.Get("/user/{id}", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin"}, http.HandlerFunc(authHandler.GetOne)),
+				).ServeHTTP,
+			))
+			r.Post("/user/{id}/password", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin"}, http.HandlerFunc(authHandler.SetPasswordByAdmin)),
+				).ServeHTTP,
+			))
+
+			r.Delete("/user", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin"}, http.HandlerFunc(authHandler.Create)),
+				).ServeHTTP,
+			))
 
 			planHandler := &handler.Plan{}
 			r.Post("/plan", planHandler.CreatePlan)
@@ -76,29 +106,80 @@ func LoadRoutes() *chi.Mux {
 
 			blogHandler := &handler.BlogHandler{}
 
-			r.Post("/blog", blogHandler.CreateBlogHandler)
+			r.Post("/blog", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogHandler.CreateBlogHandler)),
+				).ServeHTTP,
+			))
 			r.Get("/blog", blogHandler.GetBlogHandler)
 			r.Get("/blog/{id}", blogHandler.GetOneBlogHandler)
 			r.Post("/blog/view", blogHandler.AddView)
 			r.Post("/blog/share", blogHandler.AddShare)
-			r.Put("/blog/{id}", blogHandler.UpdateBlogHandler)
-			r.Delete("/blog/{id}", blogHandler.DeleteBlogHandler)
-			r.Put("/blog/approve/{id}", blogHandler.ApproveBlogHandler)
-			r.Put("/blog/publish/{id}", blogHandler.PublishBlogHandler)
+			// Blog update route with role-based access control
+			r.Put("/blog/{id}", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogHandler.UpdateBlogHandler)),
+				).ServeHTTP,
+			))
+			r.Delete("/blog/{id}", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin"}, http.HandlerFunc(blogHandler.DeleteBlogHandler)),
+				).ServeHTTP,
+			))
+			r.Get("/blog/all", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogHandler.GeAlltBlogHandler)),
+				).ServeHTTP,
+			))
+			r.Put("/blog/approve/{id}",
+				http.HandlerFunc(
+					middlewares.JWTAuthMiddleware(
+						middlewares.RoleAuthMiddleware([]string{"admin", "manager"}, http.HandlerFunc(blogHandler.ApproveBlogHandler)),
+					).ServeHTTP,
+				))
+			r.Put("/blog/publish/{id}", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin"}, http.HandlerFunc(blogHandler.PublishBlogHandler)),
+				).ServeHTTP,
+			))
 
 			blogCategoryHandler := &handler.BlogCategoryHandler{}
 
-			r.Post("/blog/category", blogCategoryHandler.CreateBlogCategoryHandler)
-			r.Get("/blog/category", blogCategoryHandler.GetAllBlogCategoryHandler)
+			r.Post("/blog/category",
+				http.HandlerFunc(
+					middlewares.JWTAuthMiddleware(
+						middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogCategoryHandler.CreateBlogCategoryHandler)),
+					).ServeHTTP,
+				))
+			r.Get("/blog/category", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogCategoryHandler.GetAllBlogCategoryHandler)),
+				).ServeHTTP,
+			))
 
 			blogTagHandler := &handler.BlogTagHandler{}
 
-			r.Post("/blog/tag", blogTagHandler.CreateBlogTagHandler)
-			r.Get("/blog/tag", blogTagHandler.GetAllBlogTagHandler)
+			r.Post("/blog/tag",
+				http.HandlerFunc(
+					middlewares.JWTAuthMiddleware(
+						middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogTagHandler.CreateBlogTagHandler)),
+					).ServeHTTP,
+				))
+
+			r.Get("/blog/tag", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogTagHandler.GetAllBlogTagHandler)),
+				).ServeHTTP,
+			))
 
 			// Image upload route
 			imageUploadHandler := handler.ImageUploadHandler{}
-			r.Post("/image/upload", imageUploadHandler.UploadImage)
+			r.Post("/image/upload", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(imageUploadHandler.UploadImage)),
+				).ServeHTTP,
+			))
+
 			r.Get("/image", imageUploadHandler.GetAllImage)
 
 			blogCommentsHandler := &handler.BlogCommentsHandler{}
@@ -128,4 +209,10 @@ func LoadRoutes() *chi.Mux {
 	})
 
 	return r
+}
+
+func WithRoleAuth(requiredRoles []string, next http.Handler) http.Handler {
+	return middlewares.JWTAuthMiddleware(
+		middlewares.RoleAuthMiddleware(requiredRoles, next),
+	)
 }

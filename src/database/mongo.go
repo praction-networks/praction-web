@@ -129,11 +129,7 @@ func CreateIndexesForUser(ctx context.Context, dbName, collectionName string) er
 			Options: options.Index().SetUnique(true),
 		},
 		{
-			Keys:    bson.M{"UserName": 1}, // Unique index on mobile
-			Options: options.Index().SetUnique(true),
-		},
-		{
-			Keys:    bson.M{"uuid": 1}, // Unique index on mobile
+			Keys:    bson.M{"username": 1}, // Unique index on mobile
 			Options: options.Index().SetUnique(true),
 		},
 	}

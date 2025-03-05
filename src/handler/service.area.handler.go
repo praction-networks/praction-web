@@ -83,64 +83,16 @@ func (sa *ServiceAreaHandler) CheckServiceArea(w http.ResponseWriter, r *http.Re
 	}
 
 	// Check if both Coordinates and Pincode are empty
-	if (serviceCheck.Coordinates == (models.PointRequest{}) ||
-		(serviceCheck.Coordinates.Latitude == 0 && serviceCheck.Coordinates.Longitude == 0)) &&
-		serviceCheck.Pincode == "" {
-		logger.Error("At least one of the fields 'Coordinates' or 'Pincode' is required to locate service")
-		response.SendBadRequestError(w, "At least one of the fields 'Coordinates' or 'Pincode' is required")
+	if serviceCheck.Pincode == "" {
+		logger.Error("'Pincode' is required to locate service")
+		response.SendBadRequestError(w, "'Pincode' is required")
 		return
 	}
-
-	// Check if both Coordinates and Pincode are provided or if neither is provided
-	if (serviceCheck.Coordinates != (models.PointRequest{}) && serviceCheck.Pincode != "") ||
-		(serviceCheck.Coordinates == (models.PointRequest{}) && serviceCheck.Pincode == "") {
-		logger.Error("Exactly one of the fields 'Coordinates' or 'Pincode' is required to locate service")
-		response.SendBadRequestError(w, "Exactly one of the fields 'Coordinates' or 'Pincode' is required")
-		return
-	}
-
 	// Validate the FeatureCollection object (this will include validation for each Feature)
 	validationErrors := validator.ValidateServiceAreaCheck(serviceCheck)
 	if len(validationErrors) > 0 {
 		logger.Error("Validation failed", "validationErrors", validationErrors)
 		response.SendError(w, validationErrors, http.StatusBadRequest)
-		return
-	}
-
-	if serviceCheck.Coordinates != (models.PointRequest{}) {
-		foundServiceArea, err := service.CheckServiceAvailability(r.Context(), &serviceCheck.Coordinates)
-
-		if err != nil {
-			// Handle different types of errors based on their content
-			switch {
-			case err.Error() == "no service areas found":
-				// Return 404 if no service areas are found
-				logger.Error("No service area found for the provided point")
-				response.SendNotFoundError(w, "No service area found for the provided point")
-			case err.Error() == fmt.Sprintf("the point with latitude %f and longitude %f is not within any service area", serviceCheck.Coordinates.Latitude, serviceCheck.Coordinates.Longitude):
-				// Return 403 if the point is not within any service area
-				logger.Error("Point is not within any service area", "lat", serviceCheck.Coordinates.Latitude, "lon", serviceCheck.Coordinates.Longitude)
-				payload := map[string]interface{}{
-					"available": false,
-					"message":   "Sorry, we are not available in your area.",
-					"data":      nil,
-				}
-				response.SendSuccess(w, payload, http.StatusAccepted)
-			default:
-				// Return 500 for other unexpected errors
-				logger.Error("Unexpected error while checking service availability", "error", err)
-				response.SendInternalServerError(w, "Internal server error")
-			}
-			return
-		}
-
-		payload := map[string]interface{}{
-			"available": true,
-			"message":   "We are available in your area!",
-			"data":      foundServiceArea,
-		}
-
-		response.SendSuccess(w, payload, http.StatusOK)
 		return
 	}
 

@@ -23,9 +23,19 @@ func GetAllImageService(ctx context.Context, params utils.PaginationParams) ([]m
 
 	// Dynamically add filters from params.Filters
 	for key, value := range params.Filters {
-		filter[key] = value
+		if key == "tag" {
+			switch v := value.(type) {
+			case []string: // Handle multiple tags
+				filter[key] = bson.M{"$in": v}
+			case string: // Handle single tag
+				filter[key] = v
+			default:
+				logger.Error(fmt.Sprintf("Unexpected tag filter type: %T", v))
+			}
+		} else {
+			filter[key] = value
+		}
 	}
-
 	// Define options for pagination and sorting
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{Key: params.SortField, Value: params.SortOrder}})

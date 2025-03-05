@@ -25,15 +25,15 @@ func ParseQueryParams(query url.Values) (PaginationParams, error) {
 	sortOrder := 1 // Default to ascending
 
 	// Parse filters dynamically
-	filters := make(map[string]string)
+	filters := make(map[string]interface{})
 	for key, values := range query {
 		// Skip reserved parameters (pagination and sorting)
 		if key == "Page" || key == "PageSize" || key == "sortField" || key == "sortOrder" {
 			continue
 		}
 		// Use the first value for simplicity
-		if len(values) > 0 {
-			filters[key] = values[0]
+		if len(values) > 1 {
+			filters[key] = values
 		}
 	}
 

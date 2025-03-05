@@ -68,6 +68,5 @@ type PointRequest struct {
 }
 
 type ServiceCheck struct {
-	Coordinates PointRequest `bson:"coordinates,omitempty" json:"coordinates,omitempty"`
-	Pincode     string       `bson:"pincode,omitempty" json:"pincode,omitempty" validate:"len=6"`
+	Pincode string `bson:"pincode,omitempty" json:"pincode,omitempty" validate:"len=6"`
 }

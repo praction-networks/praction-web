@@ -62,6 +62,24 @@ func GetAllPlans(ctx context.Context) ([]models.Plan, error) {
 
 			}
 			plans[i].PlanDetail[j].OTTs = nil
+			if len(plans[i].PlanDetail[j].IPTVs) > 0 {
+				// Fetch related OTT details from the Image collection
+				var iptvDetails []models.Image
+				filter := bson.M{"_id": bson.M{"$in": plans[i].PlanDetail[j].IPTVs}}
+				ottCursor, err := imageCollection.Find(ctx, filter)
+				if err != nil {
+					logger.Error(fmt.Sprintf("Error retrieving IPTVs for plan detail %v: %v", plans[i].PlanDetail[j].PlanID, err))
+					return nil, fmt.Errorf("error retrieving IPTVs for plan detail %v: %w", plans[i].PlanDetail[j].PlanID, err)
+				}
+				defer ottCursor.Close(ctx)
+
+				if err := ottCursor.All(ctx, &iptvDetails); err != nil {
+					logger.Error(fmt.Sprintf("Error decoding OTTs for plan detail %v: %v", plans[i].PlanDetail[j].PlanID, err))
+					return nil, fmt.Errorf("error decoding OTTs for plan detail %v: %w", plans[i].PlanDetail[j].PlanID, err)
+				}
+				// Attach OTT details to the PlanSpecific item
+				plans[i].PlanDetail[j].IPTVDetails = iptvDetails
+			}
 		}
 	}
 

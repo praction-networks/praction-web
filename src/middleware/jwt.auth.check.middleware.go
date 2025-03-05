@@ -15,7 +15,7 @@ import (
 // Define a custom type for the context key
 type contextKey string
 
-const userContextKey contextKey = "user"
+const UserContextKey contextKey = "user"
 
 // JWTAuthMiddleware is a middleware that checks the validity of the JWT token
 func JWTAuthMiddleware(next http.Handler) http.Handler {
@@ -58,24 +58,40 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 				}
 				return []byte(secret), nil
 			})
+			// Handle any parsing errors (invalid, expired, etc.)
 			if err != nil {
-				response.SendError(w, []response.ErrorDetail{
-					{Field: "token", Message: "Invalid or expired token"},
-				}, http.StatusUnauthorized)
+				// Check if the error is related to token expiration
+				if ve, ok := err.(*jwt.ValidationError); ok && ve.Errors == jwt.ValidationErrorExpired {
+					// Handle expired token error
+					response.SendError(w, []response.ErrorDetail{
+						{
+							Field:   "token",
+							Message: "Token has expired",
+						},
+					}, http.StatusUnauthorized)
+				} else {
+					// Handle general invalid token error
+					response.SendError(w, []response.ErrorDetail{
+						{
+							Field:   "token",
+							Message: "Invalid token",
+						},
+					}, http.StatusUnauthorized)
+				}
 				return
 			}
 
 			// Extract claims from the JWT token
 			if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
 				// Store user information in the request context for downstream handlers
-				user := &models.User{
+				user := &models.Admin{
 					Username: claims["username"].(string),
 					Email:    claims["email"].(string),
 					Role:     claims["role"].(string),
 				}
 
 				// Store the user in context
-				ctx := context.WithValue(r.Context(), userContextKey, user)
+				ctx := context.WithValue(r.Context(), UserContextKey, user)
 				r = r.WithContext(ctx)
 				// Proceed to the next handler
 				next.ServeHTTP(w, r)
@@ -98,6 +114,39 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 			// Proceed to the next handler
 			next.ServeHTTP(w, r)
 		}
+	})
+}
+
+// RoleAuthMiddleware checks if the user has one of the required roles for the route
+func RoleAuthMiddleware(requiredRoles []string, next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Retrieve the user from context
+		user, ok := r.Context().Value(UserContextKey).(*models.Admin)
+		if !ok {
+			response.SendError(w, []response.ErrorDetail{
+				{Field: "user", Message: "User information missing from context"},
+			}, http.StatusUnauthorized)
+			return
+		}
+
+		// Check if the user's role matches one of the required roles
+		roleMatched := false
+		for _, role := range requiredRoles {
+			if user.Role == role {
+				roleMatched = true
+				break
+			}
+		}
+
+		if !roleMatched {
+			response.SendError(w, []response.ErrorDetail{
+				{Field: "role", Message: "Insufficient role privileges"},
+			}, http.StatusForbidden)
+			return
+		}
+
+		// If the role matches, proceed to the next handler
+		next.ServeHTTP(w, r)
 	})
 }
 
@@ -144,4 +193,10 @@ func MaxBodySizeMiddleware(limit int64) func(http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 		})
 	}
+}
+
+func ChainRoleAuthWithJWT(requiredRoles []string, finalHandler http.Handler) http.Handler {
+	return JWTAuthMiddleware(
+		RoleAuthMiddleware(requiredRoles, finalHandler),
+	)
 }

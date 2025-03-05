@@ -8,7 +8,7 @@ import (
 
 type Plan struct {
 	ID         primitive.ObjectID `json:"id" bson:"_id,omitempty"`
-	Category   string             `json:"category" bson:"category" validate:"required,oneof=Internet Landline Leased_Line Business_Broadband Smart_Business_Broadband Broadband Internet+OTT Internet+OTT+IPTV"`
+	Category   string             `json:"category" bson:"category" validate:"required,oneof=Internet Landline Leased_Line Business_Broadband Smart_Business_Broadband Broadband Internet+OTT Internet+IPTV  Internet+OTT+IPTV Internet_Stream+"`
 	UUID       string             `json:"-" bson:"uuid"`
 	PlanDetail []PlanSpecific     `json:"planDetails" bson:"planDetails" validate:"required,min=1,dive"`
 }
@@ -17,6 +17,7 @@ type PlanSpecific struct {
 	PlanID       string               `json:"planID" bson:"planID"`
 	Name         string               `json:"name" bson:"name" validate:"required,max=30"`
 	PlanCategory string               `json:"planCategory" bson:"planCategory" validate:"max=20"`
+	Category     string               `json:"category" bson:"category" validate:"required,oneof=Internet Landline Leased_Line Business_Broadband Smart_Business_Broadband Broadband Internet+OTT Internet+IPTV Internet+OTT+IPTV Internet_Stream+"`
 	Speed        float64              `json:"speed" bson:"speed" validate:"required,gt=0"`
 	SpeedUnit    string               `json:"speedUnit" bson:"speedUnit" validate:"required,oneof=Mbps Gbps"`
 	Price        float64              `json:"price" bson:"price" validate:"required,gt=0"`
@@ -24,7 +25,9 @@ type PlanSpecific struct {
 	PeriodUnit   string               `json:"periodUnit" bson:"periodUnit" validate:"required,oneof=Month Year Day Days Months Years"`
 	Offering     map[string]bool      `json:"offering" bson:"offering" validate:"required"`
 	OTTs         []primitive.ObjectID `json:"otts,omitempty" bson:"otts,omitempty"`
+	IPTVs        []primitive.ObjectID `json:"iptvs,omitempty" bson:"iptvs,omitempty"`
 	OttDetails   []Image              `json:"ottDetails,omitempty" bson:"-"`
+	IPTVDetails  []Image              `json:"iptvDetails,omitempty" bson:"iptvDetails,omitempty"`
 }
 
 type AvailableUserRequest struct {
