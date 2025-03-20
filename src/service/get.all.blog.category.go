@@ -10,6 +10,7 @@ import (
 	"github.com/praction-networks/quantum-ISP365/webapp/src/utils"
 
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -54,4 +55,25 @@ func GetAllBlogCategory(ctx context.Context, params utils.PaginationParams) ([]m
 
 	logger.Info(fmt.Sprintf("Retrieved %d Blog Categories successfully.", len(blogCategories)))
 	return blogCategories, nil
+}
+
+func DeleteBlogCategoryByID(ctx context.Context, id primitive.ObjectID) error {
+	client := database.GetClient()
+	collection := client.Database("practionweb").Collection("BlogCategory")
+
+	// Perform the delete operation
+	result, err := collection.DeleteOne(ctx, bson.M{"_id": id})
+	if err != nil {
+		logger.Error("Failed to delete blog category", "id", id, "error", err)
+		return fmt.Errorf("failed to delete blog category: %w", err)
+	}
+
+	// Check if any document was deleted
+	if result.DeletedCount == 0 {
+		logger.Info("No blog category found to delete", "id", id)
+		return fmt.Errorf("no blog category found with ID: %s", id.Hex())
+	}
+
+	logger.Info("Successfully deleted blog category", "id", id)
+	return nil
 }

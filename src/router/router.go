@@ -93,6 +93,7 @@ func LoadRoutes() *chi.Mux {
 			userIntrestHandler := &handler.UserIntrest{}
 
 			r.Post("/customer/intrest", userIntrestHandler.ShowIntresrtHandler)
+			r.Patch("/customer/intrest/id", userIntrestHandler.UpdateStatus)
 			r.Post("/customer/intrest/otp", userIntrestHandler.VerifyUserOTP)
 			r.Post("/customer/intrest/resend", userIntrestHandler.ResendUserOTP)
 			r.Get("/customer/intrest", userIntrestHandler.GetALl)
@@ -157,12 +158,25 @@ func LoadRoutes() *chi.Mux {
 				).ServeHTTP,
 			))
 
+			r.Delete("/blog/category/{id}", http.HandlerFunc(
+				middlewares.JWTAuthMiddleware(
+					middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogCategoryHandler.DeleteBlogCatgoryByID)),
+				).ServeHTTP,
+			))
+
 			blogTagHandler := &handler.BlogTagHandler{}
 
 			r.Post("/blog/tag",
 				http.HandlerFunc(
 					middlewares.JWTAuthMiddleware(
 						middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogTagHandler.CreateBlogTagHandler)),
+					).ServeHTTP,
+				))
+
+			r.Delete("/blog/tag/{id}",
+				http.HandlerFunc(
+					middlewares.JWTAuthMiddleware(
+						middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(blogTagHandler.DeleteBlogTag)),
 					).ServeHTTP,
 				))
 
@@ -181,6 +195,7 @@ func LoadRoutes() *chi.Mux {
 			))
 
 			r.Get("/image", imageUploadHandler.GetAllImage)
+			r.Delete("/image/{id}", imageUploadHandler.DeleteImage)
 
 			blogCommentsHandler := &handler.BlogCommentsHandler{}
 

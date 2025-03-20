@@ -68,9 +68,11 @@ func UserInterestVerifyOTPAndUpdate(userOTP models.UserOTPVerify) (models.UserIn
 	// Update user's verification status
 	update := bson.M{
 		"$set": bson.M{
-			"updatedAt":  time.Now(),
-			"verifiedAt": time.Now(),
-			"isVerified": true, // Mark the user as verified
+			"updatedAt":     time.Now(),
+			"verifiedAt":    time.Now(),
+			"isVerified":    true, // Mark the user as verified
+			"otpExpireTime": nil,
+			"otp":           nil,
 		},
 	}
 

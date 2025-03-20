@@ -45,6 +45,7 @@ type Blog struct {
 	BlogAuthor          string               `json:"blogAuthor" bson:"blogAuthor" validate:"required,min=2,max=100"`
 	Tag                 []string             `json:"tag" bson:"tag" validate:"required,dive,alphanumunicode"`
 	Category            []string             `json:"category" bson:"category" validate:"required,dive"`
+	MetaTitle           string               `json:"metaTitle" bson:"metaTitle" validate:"required"`
 	MetaDescription     string               `json:"metaDescription,omitempty" bson:"metaDescription,omitempty" validate:"omitempty,max=160"`
 	MetaKeywords        []string             `json:"metaKeywords,omitempty" bson:"metaKeywords,omitempty" validate:"omitempty,dive,max=30"`
 	EmbeddedMedia       []string             `json:"embeddedMedia,omitempty" bson:"embeddedMedia,omitempty" validate:"omitempty,dive,http_url"`
@@ -86,6 +87,7 @@ type BlogUpdate struct {
 	BlogDescriptionType string               `json:"blogDescriptionType" bson:"blogDescriptionType" validate:"required,oneof=html text"`
 	Tag                 []string             `json:"tag" bson:"tag" validate:"required,dive,alphanumunicode"`
 	Category            []string             `json:"category" bson:"category" validate:"required,dive"`
+	MetaTitle           string               `json:"metaTitle" bson:"metaTitle" validate:"required"`
 	MetaDescription     string               `json:"metaDescription,omitempty" bson:"metaDescription,omitempty" validate:"omitempty,max=160"`
 	MetaKeywords        []string             `json:"metaKeywords,omitempty" bson:"metaKeywords,omitempty" validate:"omitempty,dive,max=30"`
 	EmbeddedMedia       []string             `json:"embeddedMedia,omitempty" bson:"embeddedMedia,omitempty" validate:"omitempty,dive,http_url"`

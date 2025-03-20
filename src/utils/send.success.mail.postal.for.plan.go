@@ -170,7 +170,7 @@ func generateEmailBodyforPlan(
             <h1>Welcome to Praction Networks!</h1>
         </div>
         <div class="logo" style="text-align: center; margin-bottom: 20px;">
-            <img src="https://praction.in/assets/images/logo.png" alt="Praction Networks" style="width: 200px; height: auto;">
+            <img src="https://praction.in/assets/images/Praction-logo-original.svg" alt="Praction Networks" style="width: 200px; height: auto;">
         </div>
         <div class="details">
             <p>Hello <span class="highlight">{{.Name}}</span>,</p>

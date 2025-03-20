@@ -69,7 +69,7 @@ func OTPOverPostalMail(email []string, otp int64) error {
 <body>
     <div class="container">
         <div class="header">
-            <img src="https://praction.in/assets/images/logo.png" alt="Praction Networks" style="max-width: 300px;" class="CtoWUD">
+            <img src="https://praction.in/assets/images/Praction-logo-original.svg" alt="Praction Networks" style="max-width: 300px;" class="CtoWUD">
         </div>
         <div class="content">
             <h2>One Time Password (OTP)</h2>

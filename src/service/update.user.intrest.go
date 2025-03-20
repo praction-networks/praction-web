@@ -9,6 +9,7 @@ import (
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
@@ -69,5 +70,118 @@ func updateOTPInDB(ctx context.Context, userIntrest models.UserInterest) error {
 	}
 
 	logger.Info(fmt.Sprintf("Updated OTP for user %s successfully.", userIntrest.Name))
+	return nil
+}
+
+func UpdateUserInterest(ctx context.Context, id string, userInterestUpdate *models.UserInterestUpdate) error {
+	client := database.GetClient()
+	collection := client.Database("practionweb").Collection("UserInterest")
+
+	// Convert string ID to MongoDB ObjectID
+	objectID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		logger.Error("Invalid User ID format", "userID", id, "error", err)
+		return fmt.Errorf("invalid user ID format: %w", err)
+	}
+
+	// Prepare dynamic update fields
+	updateFields := bson.M{}
+
+	// Append comments if provided
+	if userInterestUpdate.Comments != nil {
+		existingComments, ok := updateFields["comments"].([]string)
+		if ok {
+			updateFields["comments"] = append(existingComments, userInterestUpdate.Comments...)
+		} else {
+			updateFields["comments"] = userInterestUpdate.Comments
+		}
+	}
+
+	// Interest Stage
+	if userInterestUpdate.InterestStage != "" {
+		updateFields["interestStage"] = userInterestUpdate.InterestStage
+	}
+
+	// Follow-up Date
+	layout := "2006-01-02"
+	// Validate and parse dates before updating
+	if userInterestUpdate.FollowUpDate != "" {
+		if _, err := time.Parse(layout, userInterestUpdate.FollowUpDate); err != nil {
+			logger.Error("Invalid date format for FollowUpDate", "error", err)
+			return fmt.Errorf("invalid date format for FollowUpDate, expected YYYY-MM-DD")
+		}
+		updateFields["followUpDate"] = userInterestUpdate.FollowUpDate
+	}
+
+	if userInterestUpdate.PreferredInstallationDate != "" {
+		if _, err := time.Parse(layout, userInterestUpdate.PreferredInstallationDate); err != nil {
+			logger.Error("Invalid date format for PreferredInstallationDate", "error", err)
+			return fmt.Errorf("invalid date format for PreferredInstallationDate, expected YYYY-MM-DD")
+		}
+		updateFields["preferredInstallationDate"] = userInterestUpdate.PreferredInstallationDate
+	}
+
+	// Is Installation Agreed
+	if userInterestUpdate.IsInstallationAgreed {
+		updateFields["isInstallationAgreed"] = userInterestUpdate.IsInstallationAgreed
+	}
+
+	if userInterestUpdate.InstallationDate != "" {
+		if _, err := time.Parse(layout, userInterestUpdate.InstallationDate); err != nil {
+			logger.Error("Invalid date format for InstallationDate", "error", err)
+			return fmt.Errorf("invalid date format for InstallationDate, expected YYYY-MM-DD")
+		}
+		updateFields["installationDate"] = userInterestUpdate.InstallationDate
+	}
+
+	// Installation Status
+	if userInterestUpdate.InstallationStatus != "" {
+		updateFields["installationStatus"] = userInterestUpdate.InstallationStatus
+	}
+
+	// Installation Notes
+	if userInterestUpdate.InstallationNotes != nil {
+		existingNotes, ok := updateFields["installationNotes"].([]string)
+		if ok {
+			updateFields["installationNotes"] = append(existingNotes, userInterestUpdate.InstallationNotes...)
+		} else {
+			updateFields["installationNotes"] = userInterestUpdate.InstallationNotes
+		}
+	}
+
+	// Selected Plan
+	if userInterestUpdate.SelectedPlan != "" {
+		updateFields["selectedPlan"] = userInterestUpdate.SelectedPlan
+	}
+
+	// Update `UpdatedAt` field
+	updateFields["updatedAt"] = time.Now()
+
+	// If no update fields exist, return an error
+	if len(updateFields) == 0 {
+		logger.Warn("No valid fields provided for update", "userID", id)
+		return fmt.Errorf("no valid fields provided for update")
+	}
+
+	// Update the document
+	update := bson.M{"$set": updateFields}
+	result, err := collection.UpdateOne(ctx, bson.M{"_id": objectID}, update)
+	if err != nil {
+		logger.Error("Error updating User Interest in the database", "userID", id, "error", err)
+		return fmt.Errorf("error updating user interest: %w", err)
+	}
+
+	// Check if any document was modified
+	if result.MatchedCount == 0 {
+		logger.Warn("No User Interest found with the given ID for updating", "userID", id)
+		return fmt.Errorf("no user interest found with the given ID: %s", id)
+	}
+
+	if result.ModifiedCount == 0 {
+		logger.Warn("User Interest update request did not modify any fields", "userID", id)
+		return fmt.Errorf("user interest update did not modify any fields")
+	}
+
+	logger.Info("User Interest updated successfully", "userID", id)
 	return nil
 }

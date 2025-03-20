@@ -1,39 +1,41 @@
-# Use the official Golang image as the base image
-FROM golang:1.23 AS builder
+# Use the official Golang image as the base image for building
+FROM golang:1.23-alpine AS builder
+
+# Install necessary build tools for CGO
+RUN apk add --no-cache gcc musl-dev
 
 # Set the working directory inside the container
 WORKDIR /src
 
-# Copy the Go modules manifests
+# Copy go.mod and go.sum, download dependencies
 COPY go.mod go.sum ./
-
-# Download dependencies
 RUN go mod download
 
 # Copy the rest of the application code
-COPY . .
+COPY . ./
 
-# Build the Go srclication
+# Build the application
 RUN go build -o main ./src/main.go
 
-# Use a minimal base image for the final build
-FROM debian:bookworm-slim
+# Use a minimal base image for the final image
+FROM alpine:latest
 
-# Install CA certificates
-RUN apt-get update && apt-get install -y ca-certificates && rm -rf /var/lib/apt/lists/*
+# Install necessary certificates and runtime dependencies
+RUN apk --no-cache add ca-certificates libc6-compat
 
-
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /src
 
 # Copy the built binary from the builder stage
-COPY --from=builder /src/main .
+COPY --from=builder /src/main ./main
 
-# Copy any necessary static files or configuration (optional)
-COPY ./src/config/environment.yaml ./config/
+# Copy configuration files if needed
+COPY ./src/config/environment.yaml ./config/environment.yaml
 
-# Expose the port the src runs on (adjust if necessary)
+# Expose the port the application runs on
 EXPOSE 3000
 
-# Command to run the executable
+# Run the application
 CMD ["./main"]
+
+# File name: Dockerfile.Prod

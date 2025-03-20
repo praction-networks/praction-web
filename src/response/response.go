@@ -3,6 +3,7 @@ package response
 import (
 	"encoding/json"
 	"net/http"
+	"reflect"
 )
 
 type SuccessResponse struct {
@@ -28,15 +29,17 @@ func SendSuccess(w http.ResponseWriter, data interface{}, statusCode int) {
 	var count *int
 
 	// Calculate count if the data is a slice or map
-	switch v := data.(type) {
-	case []interface{}: // Slice of interfaces (equivalent to []any in modern Go)
-		countValue := len(v)
+	switch reflect.TypeOf(data).Kind() {
+	case reflect.Slice, reflect.Array:
+		v := reflect.ValueOf(data)
+		countValue := v.Len()
 		count = &countValue
-	case map[string]interface{}: // Map
-		countValue := len(v)
+	case reflect.Map:
+		v := reflect.ValueOf(data)
+		countValue := v.Len()
 		count = &countValue
 	default:
-		count = nil // No count for unsupported types
+		count = nil
 	}
 
 	w.Header().Set("Content-Type", "application/json")

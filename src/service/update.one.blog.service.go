@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/url"
-	"regexp"
 	"time"
 
+	"github.com/google/uuid"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/database"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
@@ -15,9 +15,9 @@ import (
 )
 
 // isValidUUIDv4 checks if a string is a valid UUID v4
-func isValidUUIDv4(s string) bool {
-	uuidRegex := regexp.MustCompile(`^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$`)
-	return uuidRegex.MatchString(s)
+func IsValidUUIDv4(s string) bool {
+	parsedUUID, err := uuid.Parse(s)
+	return err == nil && parsedUUID.Version() == 4
 }
 
 // isValidURL checks if a string is a valid URL
@@ -31,17 +31,15 @@ func getImageURLFromDatabase(ctx context.Context, uuid string) (string, error) {
 	client := database.GetClient()
 	imageCollection := client.Database("practionweb").Collection("Image")
 
-	var imageDoc struct {
-		URL string `bson:"url"`
-	}
+	var image models.Image
 
-	err := imageCollection.FindOne(ctx, bson.M{"uuid": uuid}).Decode(&imageDoc)
+	err := imageCollection.FindOne(ctx, bson.M{"uuid": uuid}).Decode(&image)
 	if err != nil {
 		logger.Error("Image not found for UUID", "UUID", uuid, "error", err)
 		return "", fmt.Errorf("image not found for UUID: %s", uuid)
 	}
 
-	return imageDoc.URL, nil
+	return image.ImageURL, nil
 }
 
 func UpdateOneBlog(ctx context.Context, id string, updateBlogData *models.BlogUpdate) error {
@@ -66,6 +64,10 @@ func UpdateOneBlog(ctx context.Context, id string, updateBlogData *models.BlogUp
 	// Slug
 	if updateBlogData.Slug != "" {
 		updateFields["slug"] = updateBlogData.Slug
+	}
+
+	if updateBlogData.MetaTitle != "" {
+		updateFields["metaTitle"] = updateBlogData.BlogTitle
 	}
 
 	// Blog Description
@@ -127,7 +129,8 @@ func UpdateOneBlog(ctx context.Context, id string, updateBlogData *models.BlogUp
 
 	// Handling BlogImage
 	if updateBlogData.BlogImage != "" {
-		if isValidUUIDv4(updateBlogData.BlogImage) {
+		logger.Info("Recived Blog Images is", "Image", updateBlogData.BlogImage)
+		if IsValidUUIDv4(updateBlogData.BlogImage) {
 			imageURL, err := getImageURLFromDatabase(ctx, updateBlogData.BlogImage)
 			if err != nil {
 				logger.Error("Failed to fetch image URL", "UUID", updateBlogData.BlogImage, "error", err)
@@ -140,11 +143,13 @@ func UpdateOneBlog(ctx context.Context, id string, updateBlogData *models.BlogUp
 			logger.Error("Invalid BlogImage format", "BlogImage", updateBlogData.BlogImage)
 			return fmt.Errorf("BlogImage must be a valid UUID v4 or a URL")
 		}
+
+		logger.Info("Passed Blog Images is", "Image", updateFields["blogImage"])
 	}
 
 	// Handling FeatureImage
 	if updateBlogData.FeatureImage != "" {
-		if isValidUUIDv4(updateBlogData.FeatureImage) {
+		if IsValidUUIDv4(updateBlogData.FeatureImage) {
 			imageURL, err := getImageURLFromDatabase(ctx, updateBlogData.FeatureImage)
 			if err != nil {
 				logger.Error("Failed to fetch image URL", "UUID", updateBlogData.FeatureImage, "error", err)
@@ -157,6 +162,29 @@ func UpdateOneBlog(ctx context.Context, id string, updateBlogData *models.BlogUp
 			logger.Error("Invalid FeatureImage format", "FeatureImage", updateBlogData.FeatureImage)
 			return fmt.Errorf("FeatureImage must be a valid UUID v4 or a URL")
 		}
+	}
+
+	if len(updateBlogData.EmbeddedMedia) > 0 { // ✅ Check if array is not empty
+		var updatedMedia []string
+
+		for _, media := range updateBlogData.EmbeddedMedia { // ✅ Loop over each media entry
+			if IsValidUUIDv4(media) { // ✅ Check if it's a valid UUID
+				imageURL, err := getImageURLFromDatabase(ctx, media)
+				if err != nil {
+					logger.Error("Failed to fetch image URL", "UUID", media, "error", err)
+					return fmt.Errorf("failed to retrieve image URL for UUID: %w", err)
+				}
+				updatedMedia = append(updatedMedia, imageURL) // ✅ Store URL
+			} else if isValidURL(media) { // ✅ If valid URL, store directly
+				updatedMedia = append(updatedMedia, media)
+			} else {
+				logger.Error("Invalid embeddedMedia format", "embeddedMedia", media)
+				return fmt.Errorf("embeddedMedia must be a valid UUID v4 or a URL")
+			}
+		}
+
+		// ✅ Update the embeddedMedia field with the modified array
+		updateFields["embeddedMedia"] = updatedMedia
 	}
 
 	// Update `UpdatedAt` field

@@ -6,11 +6,17 @@ import (
 	"strings"
 
 	// Import Cloudinary client
+	"github.com/go-chi/chi/v5"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/cloudinary"
+	"github.com/praction-networks/quantum-ISP365/webapp/src/database"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
+	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/service"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/utils"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 type ImageUploadHandler struct{}
@@ -71,8 +77,22 @@ func (IU *ImageUploadHandler) UploadImage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Log the file details for debugging
-	logger.Info("Received file", "fileName", header.Filename, "fileSize", header.Size)
+	// Check if the image exists
+	err = service.GetImageByName(r.Context(), name)
+
+	if err != nil {
+		if err.Error() == "image already exists with this name, please use a different name to upload the image" {
+			logger.Info("Image name already exists", "name", name)
+			w.WriteHeader(http.StatusConflict) // 409 Conflict
+			response.SendConflictError(w, "Image already exists. Please use a different name.")
+			return
+		}
+
+		// If another error occurs (e.g., database issue), return 500 Internal Server Error
+		logger.Error("Database error checking image existence", "name", name, "error", err)
+		response.SendInternalServerError(w, "Internal server error")
+		return
+	}
 
 	// Check for duplicate images
 	image, err := cloudinaryClient.UploadImage(file, header.Filename, "praction-blog", name, tag)
@@ -143,5 +163,73 @@ func (IU *ImageUploadHandler) GetAllImage(w http.ResponseWriter, r *http.Request
 	}
 
 	response.SendSuccess(w, images, http.StatusOK)
+
+}
+
+func (IU *ImageUploadHandler) DeleteImage(w http.ResponseWriter, r *http.Request) {
+	logger.Info("Initiating image deletion process")
+
+	// Extract image ID from the request
+	imageID := chi.URLParam(r, "id")
+	if imageID == "" {
+		logger.Error("Missing image ID in request")
+		response.SendBadRequestError(w, "Missing image ID in request")
+		return
+	}
+
+	// Convert string ID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(imageID)
+	if err != nil {
+		logger.Error("Invalid image ID format", "imageID", imageID, "error", err)
+		response.SendBadRequestError(w, "Invalid image ID format, should be a valid mongo Object ID")
+		return
+	}
+
+	ctx := r.Context()
+
+	// Get MongoDB client and collection
+	client := database.GetClient()
+	collection := client.Database("practionweb").Collection("Image")
+
+	// Find the image document in MongoDB
+	var image models.Image // Assuming the Image model is inside the service package
+	err = collection.FindOne(ctx, bson.M{"_id": objID}).Decode(&image)
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			logger.Info("Image not found in database", "imageID", imageID)
+			response.SendNotFoundError(w, fmt.Sprintf("Image not found with ID: %s", objID))
+			return
+		}
+		logger.Error("Error retrieving image from database", "imageID", imageID, "error", err)
+		response.SendInternalServerError(w, "Database error")
+		return
+	}
+
+	// Initialize Cloudinary client
+	cloudinaryClient, err := cloudinary.NewCloudinaryCLient()
+	if err != nil {
+		logger.Error("Failed to initialize Cloudinary client", "error", err.Error())
+		response.SendInternalServerError(w, fmt.Sprintf("Error initializing Cloudinary client: %v", err))
+		return
+	}
+
+	// Delete the image from Cloudinary
+	err = cloudinaryClient.DeleteImage(ctx, image.FileID)
+	if err != nil {
+		logger.Error("Failed to delete image from Cloudinary", "imageID", imageID, "fileID", image.FileID, "error", err)
+		response.SendInternalServerError(w, "Internal Server Error: Failed to delete image from Cloudinary")
+		return
+	}
+
+	// Delete the image from MongoDB
+	_, err = collection.DeleteOne(ctx, bson.M{"_id": objID})
+	if err != nil {
+		logger.Error("Failed to delete image from database", "imageID", imageID, "error", err)
+		response.SendInternalServerError(w, "Failed to delete image from database")
+		return
+	}
+
+	logger.Info("Image successfully deleted", "imageID", imageID, "fileID", image.FileID)
+	response.SendSuccess(w, "Image deleted successfully", http.StatusOK)
 
 }

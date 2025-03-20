@@ -18,6 +18,7 @@ func CreateUserIntrest(ctx context.Context, userIntrest models.UserInterest) err
 	userIntrest.CreatedAt = time.Now()
 	userIntrest.OTPExpireTime = time.Now().Add(30 * time.Minute)
 	userIntrest.IsVerified = false
+	userIntrest.InterestStage = "New"
 	// Insert the user into the MongoDB database
 	err := insertUserIntrestIntoDB(ctx, userIntrest)
 	if err != nil {

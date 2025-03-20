@@ -231,3 +231,14 @@ func (client *CloudinaryClient) UploadImage(file io.Reader, fileName string, fol
 
 	return returnImageMeta, nil
 }
+
+func (c *CloudinaryClient) DeleteImage(ctx context.Context, publicID string) error {
+	// Perform deletion on Cloudinary
+	_, err := c.client.Upload.Destroy(ctx, uploader.DestroyParams{
+		PublicID: publicID,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to delete image from Cloudinary: %w", err)
+	}
+	return nil
+}

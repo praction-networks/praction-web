@@ -2,14 +2,18 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/service"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/utils"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/validator"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type BlogCategoryHandler struct{}
@@ -78,4 +82,43 @@ func (pc *BlogCategoryHandler) GetAllBlogCategoryHandler(w http.ResponseWriter, 
 
 	// Return the fetched categories
 	response.SendSuccess(w, blogCategories, http.StatusOK)
+}
+
+func (bt *BlogCategoryHandler) DeleteBlogCatgoryByID(w http.ResponseWriter, r *http.Request) {
+	logger.Info("Initiating Blog Category deletion process")
+
+	// Extract tag ID from the request
+	categoryID := chi.URLParam(r, "id")
+	if categoryID == "" {
+		logger.Error("Missing Category ID in request")
+		response.SendBadRequestError(w, "Missing Category ID in request")
+		return
+	}
+
+	// Convert string ID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(categoryID)
+	if err != nil {
+		logger.Error("Invalid tag ID format", "CategoryID ID", categoryID, "error", err)
+		response.SendBadRequestError(w, "Invalid Category ID format, should be a valid MongoDB ObjectID")
+		return
+	}
+
+	ctx := r.Context()
+
+	// Call service to delete blog tag
+	err = service.DeleteBlogCategoryByID(ctx, objID)
+	if err != nil {
+		if strings.Contains(err.Error(), "no blog category found") {
+			logger.Info("Blog tag not found", "category", categoryID)
+			response.SendNotFoundError(w, fmt.Sprintf("No blog category found with ID: %s", categoryID))
+			return
+		}
+
+		logger.Error("Failed to delete blog tag", "categoryID", categoryID, "error", err)
+		response.SendInternalServerError(w, "Internal Server Error: Failed to delete blog tag")
+		return
+	}
+
+	logger.Info("Blog category successfully deleted", "categoryID", categoryID)
+	response.SendSuccess(w, "Blog category deleted successfully", http.StatusOK)
 }

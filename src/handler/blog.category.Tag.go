@@ -2,14 +2,18 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
+	"strings"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/service"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/utils"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/validator"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 type BlogTagHandler struct{}
@@ -78,4 +82,43 @@ func (bt *BlogTagHandler) GetAllBlogTagHandler(w http.ResponseWriter, r *http.Re
 
 	// Return the fetched categories
 	response.SendSuccess(w, blogTag, http.StatusOK)
+}
+
+func (bt *BlogTagHandler) DeleteBlogTag(w http.ResponseWriter, r *http.Request) {
+	logger.Info("Initiating Blog Tag deletion process")
+
+	// Extract tag ID from the request
+	tagID := chi.URLParam(r, "id")
+	if tagID == "" {
+		logger.Error("Missing tag ID in request")
+		response.SendBadRequestError(w, "Missing tag ID in request")
+		return
+	}
+
+	// Convert string ID to ObjectID
+	objID, err := primitive.ObjectIDFromHex(tagID)
+	if err != nil {
+		logger.Error("Invalid tag ID format", "tagID", tagID, "error", err)
+		response.SendBadRequestError(w, "Invalid tag ID format, should be a valid MongoDB ObjectID")
+		return
+	}
+
+	ctx := r.Context()
+
+	// Call service to delete blog tag
+	err = service.DeleteBlogTagByID(ctx, objID)
+	if err != nil {
+		if strings.Contains(err.Error(), "no blog tag found") {
+			logger.Info("Blog tag not found", "tagID", tagID)
+			response.SendNotFoundError(w, fmt.Sprintf("No blog tag found with ID: %s", tagID))
+			return
+		}
+
+		logger.Error("Failed to delete blog tag", "tagID", tagID, "error", err)
+		response.SendInternalServerError(w, "Internal Server Error: Failed to delete blog tag")
+		return
+	}
+
+	logger.Info("Blog tag successfully deleted", "tagID", tagID)
+	response.SendSuccess(w, "Blog tag deleted successfully", http.StatusOK)
 }

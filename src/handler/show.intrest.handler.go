@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/response"
@@ -262,4 +263,50 @@ func (h *UserIntrest) GetALl(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.SendSuccess(w, users, http.StatusOK)
+}
+
+func (h *UserIntrest) UpdateStatus(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Extract ID from URL parameters
+	id := chi.URLParam(r, "id")
+	if id == "" {
+		logger.Error("User ID is missing in the request")
+		response.SendBadRequestError(w, "User ID is required to update the User Interest")
+		return
+	}
+
+	// Parse the request body into a UserInterestUpdate struct
+	var userUpdate models.UserInterestUpdate
+	if err := json.NewDecoder(r.Body).Decode(&userUpdate); err != nil {
+		logger.Error("Error parsing request body", "error", err)
+		response.SendBadRequestError(w, "Invalid request payload for User Interest update")
+		return
+	}
+
+	// Validate the parsed UserInterestUpdate struct
+	validationErrors := validator.ValidateUserInterestUpdate(&userUpdate)
+	if len(validationErrors) > 0 {
+		logger.Error("Validation failed for User Interest Update attributes", "validationErrors", validationErrors)
+		response.SendError(w, validationErrors, http.StatusBadRequest)
+		return
+	}
+
+	// Call the UpdateUserInterest function to update the database
+	err := service.UpdateUserInterest(ctx, id, &userUpdate)
+	if err != nil {
+		logger.Error("Failed to update User Interest", "userID", id, "error", err)
+		if err.Error() == "no user interest found with the given ID: "+id {
+			response.SendNotFoundError(w, "User Interest not found with the given ID")
+		} else if err.Error() == "no valid fields provided for update" {
+			response.SendBadRequestError(w, "No valid fields provided for update")
+		} else {
+			response.SendInternalServerError(w, "Failed to update User Interest")
+		}
+		return
+	}
+
+	// Send success response
+	response.SendSuccess(w, "User Interest updated successfully", http.StatusOK)
+	logger.Info("User Interest updated successfully", "userID", id)
 }

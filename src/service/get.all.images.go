@@ -9,8 +9,33 @@ import (
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/utils"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
+
+// GetImageByName checks if an image with the given name exists in the database.
+func GetImageByName(ctx context.Context, name string) error {
+	client := database.GetClient()
+	collection := client.Database("practionweb").Collection("Image")
+
+	filter := bson.M{"name": name}
+
+	err := collection.FindOne(ctx, filter).Err()
+	if err != nil {
+		if err == mongo.ErrNoDocuments {
+			// Image does not exist, log and return nil (no error)
+			logger.Info("Image not found", "name", name)
+			return nil
+		}
+		// Log and return any other database error
+		logger.Error("Error checking image existence", "name", name, "error", err)
+		return err
+	}
+
+	// Image exists, log and return a validation error
+	logger.Info("Image found", "name", name)
+	return fmt.Errorf("image already exists with this name, please use a different name to upload the image")
+}
 
 func GetAllImageService(ctx context.Context, params utils.PaginationParams) ([]models.Image, error) {
 	client := database.GetClient()
