@@ -17,7 +17,7 @@ import (
 func GetAllIntrestUserForPlanService(ctx context.Context, params utils.PaginationParams, db string) ([]models.AvailableUserRequest, error) {
 
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection(db)
+	collection := client.Database("uvfiberweb").Collection(db)
 	// Set default pagination values if not provided
 	if params.Page <= 0 {
 		params.Page = 1

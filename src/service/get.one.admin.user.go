@@ -15,7 +15,7 @@ import (
 // GetOneUser retrieves a single user by their ID or username
 func GetOneUser(ctx context.Context, userIDOrUsername string) (*models.ResponseAdmin, error) {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("User")
+	collection := client.Database("uvfiberweb").Collection("User")
 
 	// Log the incoming request
 	logger.Info("Attempting to find user with ID/Username:", "Use_ID", userIDOrUsername)

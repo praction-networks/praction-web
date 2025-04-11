@@ -70,7 +70,7 @@ func CreateBlogComments(ctx context.Context, blogComments models.Comments, BlogI
 func insertBlogCommentsIntoDB(ctx context.Context, blogComments models.Comments) (primitive.ObjectID, error) {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("BlogComments")
+	collection := client.Database("uvfiberweb").Collection("BlogComments")
 
 	// Insert the comment document into the collection
 	result, err := collection.InsertOne(ctx, blogComments)
@@ -98,7 +98,7 @@ func insertBlogCommentsIntoDB(ctx context.Context, blogComments models.Comments)
 
 func isBlogAvailable(ctx context.Context, blogID primitive.ObjectID) error {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Blog")
+	collection := client.Database("uvfiberweb").Collection("Blog")
 
 	// Create a filter to search for the blog by its ID
 	filter := bson.D{{Key: "_id", Value: blogID}}
@@ -119,7 +119,7 @@ func isBlogAvailable(ctx context.Context, blogID primitive.ObjectID) error {
 
 func appendBlogCommentsToBlog(ctx context.Context, blogID primitive.ObjectID, commentID primitive.ObjectID) error {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Blog")
+	collection := client.Database("uvfiberweb").Collection("Blog")
 
 	// Step 1: Fetch the full blog document
 	var blog models.Blog

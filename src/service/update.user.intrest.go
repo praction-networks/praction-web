@@ -29,7 +29,7 @@ func UpdateUserOTP(ctx context.Context, userIntrest models.UserInterest) error {
 // updateOTPInDB updates the OTP and verification status for the user based on mobile or email
 func updateOTPInDB(ctx context.Context, userIntrest models.UserInterest) error {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("UserIntrest")
+	collection := client.Database("uvfiberweb").Collection("UserIntrest")
 
 	// Define the query for checking if the user exists based on email or mobile
 	query := bson.M{
@@ -75,7 +75,7 @@ func updateOTPInDB(ctx context.Context, userIntrest models.UserInterest) error {
 
 func UpdateUserInterest(ctx context.Context, id string, userInterestUpdate *models.UserInterestUpdate) error {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("UserInterest")
+	collection := client.Database("uvfiberweb").Collection("UserInterest")
 
 	// Convert string ID to MongoDB ObjectID
 	objectID, err := primitive.ObjectIDFromHex(id)

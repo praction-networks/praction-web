@@ -17,7 +17,7 @@ import (
 func GetAllBlogService(ctx context.Context, params utils.PaginationParams) ([]models.Blog, error) {
 
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Blog")
+	collection := client.Database("uvfiberweb").Collection("Blog")
 	// Set default pagination values if not provided
 	if params.Page <= 0 {
 		params.Page = 1
@@ -29,31 +29,18 @@ func GetAllBlogService(ctx context.Context, params utils.PaginationParams) ([]mo
 		params.SortField = "createdAt"
 	}
 	if params.SortOrder != 1 && params.SortOrder != -1 {
-		params.SortOrder = 1
+		params.SortOrder = -1
 	}
 
-	// Build the query filters
-	filter := bson.M{
-		"isApproved": true,
-		"isActive":   true,
-		"isDeleted":  false,
-		"status":     "published",
-	}
-
-	// Add additional filters for category and tag if present
-	if categories, ok := params.Filters["category"]; ok {
-		// Filter blogs where category matches any of the given values
-		filter["category"] = bson.M{"$in": categories}
-	}
-
-	if tags, ok := params.Filters["tag"]; ok {
-		// Filter blogs where tag matches any of the given values
-		filter["tag"] = bson.M{"$in": tags}
-	}
-
-	for key, value := range params.Filters {
-		filter[key] = value
-	}
+	filter := buildBlogFilters(
+		bson.M{
+			"isApproved": true,
+			"isActive":   true,
+			"isDeleted":  false,
+			"status":     "published",
+		},
+		params.Filters,
+	)
 
 	// Define find options for pagination and sorting
 	findOptions := options.Find()
@@ -85,7 +72,7 @@ func GetAllBlogService(ctx context.Context, params utils.PaginationParams) ([]mo
 	for i, blog := range blogs {
 		// Ensure CommentsList is not empty
 		if len(blog.CommentsList) > 0 {
-			commentCollection := client.Database("practionweb").Collection("BlogComments")
+			commentCollection := client.Database("uvfiberweb").Collection("BlogComments")
 			commentFilter := bson.M{"_id": bson.M{"$in": blog.CommentsList}}
 
 			// Fetch the comments by ObjectIDs from CommentsList
@@ -114,7 +101,7 @@ func GetAllBlogService(ctx context.Context, params utils.PaginationParams) ([]mo
 func GetAdminAllBlogService(ctx context.Context, params utils.PaginationParams) ([]models.Blog, error) {
 
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Blog")
+	collection := client.Database("uvfiberweb").Collection("Blog")
 	// Set default pagination values if not provided
 	if params.Page <= 0 {
 		params.Page = 1
@@ -177,7 +164,7 @@ func GetAdminAllBlogService(ctx context.Context, params utils.PaginationParams) 
 	for i, blog := range blogs {
 		// Ensure CommentsList is not empty
 		if len(blog.CommentsList) > 0 {
-			commentCollection := client.Database("practionweb").Collection("BlogComments")
+			commentCollection := client.Database("uvfiberweb").Collection("BlogComments")
 			commentFilter := bson.M{"_id": bson.M{"$in": blog.CommentsList}}
 
 			// Fetch the comments by ObjectIDs from CommentsList
@@ -201,4 +188,16 @@ func GetAdminAllBlogService(ctx context.Context, params utils.PaginationParams) 
 
 	logger.Info(fmt.Sprintf("Retrieved %d blog(s) successfully with pagination and sorting and filters.", len(blogs)))
 	return blogs, nil
+}
+
+func buildBlogFilters(base bson.M, filters map[string]interface{}) bson.M {
+	for key, value := range filters {
+		switch key {
+		case "category", "tag":
+			base[key] = bson.M{"$in": value}
+		default:
+			base[key] = value
+		}
+	}
+	return base
 }

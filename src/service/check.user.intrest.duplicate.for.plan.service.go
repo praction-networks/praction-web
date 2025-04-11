@@ -16,7 +16,7 @@ import (
 // and whether it is verified.
 func CheckUserIntrestForPlanDuplicate(user *models.AvailableUserRequest) (models.AvailableUserRequest, string, error) {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("UserPlanIntrest")
+	collection := client.Database("uvfiberweb").Collection("UserPlanIntrest")
 
 	// Context with timeout to avoid indefinite hanging
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

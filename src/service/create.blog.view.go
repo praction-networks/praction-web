@@ -37,7 +37,7 @@ func CreateBlogView(ctx context.Context, BlogID primitive.ObjectID) error {
 
 func checkBlogAndAddView(ctx context.Context, blogID primitive.ObjectID) error {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Blog")
+	collection := client.Database("uvfiberweb").Collection("Blog")
 
 	// Create a filter to search for the blog by its ID
 	filter := bson.D{{Key: "_id", Value: blogID}}

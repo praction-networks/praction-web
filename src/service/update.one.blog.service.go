@@ -29,7 +29,7 @@ func isValidURL(s string) bool {
 // getImageURLFromDatabase searches for an image by UUID and returns its URL
 func getImageURLFromDatabase(ctx context.Context, uuid string) (string, error) {
 	client := database.GetClient()
-	imageCollection := client.Database("practionweb").Collection("Image")
+	imageCollection := client.Database("uvfiberweb").Collection("Image")
 
 	var image models.Image
 
@@ -44,7 +44,7 @@ func getImageURLFromDatabase(ctx context.Context, uuid string) (string, error) {
 
 func UpdateOneBlog(ctx context.Context, id string, updateBlogData *models.BlogUpdate) error {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Blog")
+	collection := client.Database("uvfiberweb").Collection("Blog")
 
 	// Convert string ID to MongoDB ObjectID
 	objectID, err := primitive.ObjectIDFromHex(id)

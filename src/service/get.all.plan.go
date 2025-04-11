@@ -14,8 +14,8 @@ import (
 
 func GetAllPlans(ctx context.Context) ([]models.Plan, error) {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Plan")
-	imageCollection := client.Database("practionweb").Collection("Image")
+	collection := client.Database("uvfiberweb").Collection("Plan")
+	imageCollection := client.Database("uvfiberweb").Collection("Image")
 
 	// Define a slice to store retrieved plans
 	var plans []models.Plan

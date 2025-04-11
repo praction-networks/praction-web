@@ -15,7 +15,7 @@ import (
 func GetOneBlog(ctx context.Context, id string) (*models.Blog, error) {
 
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Blog")
+	collection := client.Database("uvfiberweb").Collection("Blog")
 
 	// Convert the string ID to a MongoDB ObjectID
 	var filter bson.M
@@ -53,7 +53,7 @@ func GetOneBlog(ctx context.Context, id string) (*models.Blog, error) {
 	}
 
 	if len(blog.CommentsList) > 0 {
-		commentCollection := client.Database("practionweb").Collection("BlogComments")
+		commentCollection := client.Database("uvfiberweb").Collection("BlogComments")
 		commentFilter := bson.M{"_id": bson.M{"$in": blog.CommentsList}}
 
 		// Fetch the comments by ObjectIDs from CommentsList

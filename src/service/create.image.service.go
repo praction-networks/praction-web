@@ -41,7 +41,7 @@ func SaveblogImage(ImageName, ImageID, ImageURL string, name string, tag string)
 func insertGoogleImageIntoDB(ctx context.Context, image models.Image) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Image")
+	collection := client.Database("uvfiberweb").Collection("Image")
 
 	// Insert the user document into the collection
 

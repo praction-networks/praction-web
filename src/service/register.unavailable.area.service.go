@@ -41,7 +41,7 @@ func CreateUnAvailableAreaRequest(ctx context.Context, unAvailableArea models.Un
 func insertUnAvailableAreaIntoDB(ctx context.Context, unAvailableArea models.UnAvailableArea) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("unavailableAreaRequest")
+	collection := client.Database("uvfiberweb").Collection("unavailableAreaRequest")
 
 	// Insert the request document into the collection
 	_, err := collection.InsertOne(ctx, unAvailableArea)

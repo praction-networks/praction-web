@@ -17,7 +17,7 @@ import (
 
 func GetAllBlogTag(ctx context.Context, params utils.PaginationParams) ([]models.BlogTag, error) {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("BlogTag")
+	collection := client.Database("uvfiberweb").Collection("BlogTag")
 
 	// Build the query filters
 	filter := bson.M{
@@ -59,7 +59,7 @@ func GetAllBlogTag(ctx context.Context, params utils.PaginationParams) ([]models
 
 func DeleteBlogTagByID(ctx context.Context, id primitive.ObjectID) error {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("BlogTag")
+	collection := client.Database("uvfiberweb").Collection("BlogTag")
 
 	// Perform the delete operation
 	result, err := collection.DeleteOne(ctx, bson.M{"_id": id})

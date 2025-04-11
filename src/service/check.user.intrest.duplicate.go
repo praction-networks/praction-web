@@ -16,7 +16,7 @@ import (
 // and whether it is verified.
 func CheckUserIntrestDuplicate(user models.UserInterest) (models.UserInterest, string, error) {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("UserIntrest")
+	collection := client.Database("uvfiberweb").Collection("UserIntrest")
 
 	// Context with timeout to avoid indefinite hanging
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

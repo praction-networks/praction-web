@@ -16,7 +16,7 @@ import (
 // and whether it is verified.
 func CheckUserReferalDuplicate(user models.UserRefrence) (models.UserRefrence, string, error) {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("UserReferal")
+	collection := client.Database("uvfiberweb").Collection("UserReferal")
 
 	// Context with timeout to avoid indefinite hanging
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

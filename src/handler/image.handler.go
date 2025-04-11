@@ -189,7 +189,7 @@ func (IU *ImageUploadHandler) DeleteImage(w http.ResponseWriter, r *http.Request
 
 	// Get MongoDB client and collection
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Image")
+	collection := client.Database("uvfiberweb").Collection("Image")
 
 	// Find the image document in MongoDB
 	var image models.Image // Assuming the Image model is inside the service package

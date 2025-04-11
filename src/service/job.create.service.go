@@ -33,7 +33,7 @@ func CreateJob(ctx context.Context, job models.Job) error {
 func insertJobIntoDB(ctx context.Context, job models.Job) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Job")
+	collection := client.Database("uvfiberweb").Collection("Job")
 
 	// Insert the user document into the collection
 	_, err := collection.InsertOne(ctx, job)

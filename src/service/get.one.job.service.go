@@ -16,7 +16,7 @@ import (
 func GetOneJob(ctx context.Context, id string) (*models.Job, error) {
 
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Job")
+	collection := client.Database("uvfiberweb").Collection("Job")
 
 	// Convert the string ID to a MongoDB ObjectID
 	objectID, err := primitive.ObjectIDFromHex(id)

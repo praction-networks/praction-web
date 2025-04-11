@@ -19,7 +19,7 @@ func ModifyServiceArea(ctx context.Context, objectID string, updatedFeature *mod
 
 	// MongoDB client and collection
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("ServiceArea")
+	collection := client.Database("uvfiberweb").Collection("ServiceArea")
 
 	// Convert objectID string to ObjectID type
 	objID, err := primitive.ObjectIDFromHex(objectID)

@@ -19,7 +19,7 @@ func ApproveBlog(ctx context.Context, id string, approve bool) error {
 	}
 
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Blog")
+	collection := client.Database("uvfiberweb").Collection("Blog")
 
 	// Convert the string ID to a MongoDB ObjectID
 	objectID, err := primitive.ObjectIDFromHex(id)

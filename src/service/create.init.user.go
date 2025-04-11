@@ -61,7 +61,7 @@ func hashPassword(password string, salt []byte) string {
 func insertUserIntoDB(ctx context.Context, user models.Admin) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("User")
+	collection := client.Database("uvfiberweb").Collection("User")
 
 	// Insert the user document
 	_, err := collection.InsertOne(ctx, user)

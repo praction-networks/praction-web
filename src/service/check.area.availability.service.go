@@ -46,7 +46,7 @@ func CheckServiceAvailability(ctx context.Context, point *models.PointRequest) (
 func GetArrayOfFeatures(ctx context.Context) ([]models.Feature, error) {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("ServiceArea")
+	collection := client.Database("uvfiberweb").Collection("ServiceArea")
 
 	// Slice to hold the features
 	var featureCollections []models.FeatureCollection

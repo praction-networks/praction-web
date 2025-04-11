@@ -39,7 +39,7 @@ func CreateBlogTagService(ctx context.Context, blogTag models.BlogTag) error {
 // insertBlogCategoryIntoDB inserts the blog category into the MongoDB database.
 func insertBlogTagIntoDB(ctx context.Context, blogTag models.BlogTag) error {
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("BlogTag")
+	collection := client.Database("uvfiberweb").Collection("BlogTag")
 
 	// Attempt to insert the document
 	_, err := collection.InsertOne(ctx, blogTag)

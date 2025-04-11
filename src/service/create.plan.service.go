@@ -42,7 +42,7 @@ func CreatePlan(ctx context.Context, plan models.Plan) error {
 func insertPlanIntoDB(ctx context.Context, plan models.Plan) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("practionweb").Collection("Plan")
+	collection := client.Database("uvfiberweb").Collection("Plan")
 
 	// Insert the plan document into the collection
 	_, err := collection.InsertOne(ctx, plan)
