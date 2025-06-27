@@ -11,7 +11,7 @@ type Image struct {
 	UUID      string             `json:"uuid" bson:"uuid"`
 	Name      string             `json:"name" bson:"name" validate:"required"`
 	FileID    string             `json:"fileID" bson:"fileID"`
-	Tag       string             `json:"tag" bson:"tag" validate:"required,oneof=blog iptv ott"`
+	Tag       string             `json:"tag" bson:"tag" validate:"required,oneof=blog iptv ott area"`
 	FileName  string             `json:"fileName" bson:"FileName"`
 	ImageURL  string             `json:"imageURL" bson:"imageURL"`
 	CreatedAt time.Time          `json:"created_at" bson:"created_at"`

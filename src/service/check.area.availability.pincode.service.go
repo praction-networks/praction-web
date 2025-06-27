@@ -42,7 +42,7 @@ func CheckServiceByPinCode(ctx context.Context, pincode string) ([]models.Featur
 func GetArrayofPinCode(ctx context.Context, pincode string) ([]models.FeatureProperties, error) {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("ServiceArea")
+	collection := client.Database("practionweb").Collection("ServiceArea")
 
 	// Slice to hold all coordinates from the service area features
 	var featurePropertiesList []models.FeatureProperties

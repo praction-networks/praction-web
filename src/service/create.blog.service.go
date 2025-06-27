@@ -95,7 +95,7 @@ func CreateBlog(ctx context.Context, blog models.Blog) error {
 func insertBlogIntoDB(ctx context.Context, blog models.Blog) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Blog")
+	collection := client.Database("practionweb").Collection("Blog")
 
 	// Insert the user document into the collection
 	_, err := collection.InsertOne(ctx, blog)
@@ -120,7 +120,7 @@ func insertBlogIntoDB(ctx context.Context, blog models.Blog) error {
 
 func getBlogByName(ctx context.Context, blogTitle string) error {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Blog")
+	collection := client.Database("practionweb").Collection("Blog")
 
 	filter := bson.D{{Key: "blogTitle", Value: blogTitle}}
 
@@ -143,7 +143,7 @@ func getBlogByName(ctx context.Context, blogTitle string) error {
 
 func getImageByUUID(ctx context.Context, blogImageUUID, featureImageUUID string) (string, string, error) {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Image")
+	collection := client.Database("practionweb").Collection("Image")
 
 	// Find BlogImage using blogImageUUID
 	filterBlogImage := bson.D{{Key: "uuid", Value: blogImageUUID}}
@@ -183,7 +183,7 @@ func getImageByUUID(ctx context.Context, blogImageUUID, featureImageUUID string)
 
 func checkBlogCategory(ctx context.Context, categorys []string) error {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("BlogCategory")
+	collection := client.Database("practionweb").Collection("BlogCategory")
 
 	// Create a filter for matching any of the provided UUIDs
 	filter := bson.D{{Key: "name", Value: bson.D{{Key: "$in", Value: categorys}}}}
@@ -214,7 +214,7 @@ func checkBlogCategory(ctx context.Context, categorys []string) error {
 
 func checkBlogTag(ctx context.Context, tags []string) error {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("BlogTag")
+	collection := client.Database("practionweb").Collection("BlogTag")
 
 	// Create a filter for matching any of the provided UUIDs
 	filter := bson.D{{Key: "name", Value: bson.D{{Key: "$in", Value: tags}}}}

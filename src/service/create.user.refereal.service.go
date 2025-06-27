@@ -33,7 +33,7 @@ func CreateUserReferal(ctx context.Context, UserReferal models.UserRefrence) err
 func insertUserReferlIntoDB(ctx context.Context, userIntrest models.UserRefrence) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("UserReferal")
+	collection := client.Database("practionweb").Collection("UserReferal")
 
 	// Insert the user document into the collection
 	_, err := collection.InsertOne(ctx, userIntrest)

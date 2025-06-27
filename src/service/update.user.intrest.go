@@ -29,7 +29,7 @@ func UpdateUserOTP(ctx context.Context, userIntrest models.UserInterest) error {
 // updateOTPInDB updates the OTP and verification status for the user based on mobile or email
 func updateOTPInDB(ctx context.Context, userIntrest models.UserInterest) error {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("UserIntrest")
+	collection := client.Database("practionweb").Collection("UserIntrest")
 
 	// Define the query for checking if the user exists based on email or mobile
 	query := bson.M{
@@ -73,9 +73,9 @@ func updateOTPInDB(ctx context.Context, userIntrest models.UserInterest) error {
 	return nil
 }
 
-func UpdateUserInterest(ctx context.Context, id string, userInterestUpdate *models.UserInterestUpdate) error {
+func UpdateUserInterest(ctx context.Context, id string, userInterestUpdate *models.UserInterest) error {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("UserInterest")
+	collection := client.Database("practionweb").Collection("UserInterest")
 
 	// Convert string ID to MongoDB ObjectID
 	objectID, err := primitive.ObjectIDFromHex(id)
@@ -105,16 +105,16 @@ func UpdateUserInterest(ctx context.Context, id string, userInterestUpdate *mode
 	// Follow-up Date
 	layout := "2006-01-02"
 	// Validate and parse dates before updating
-	if userInterestUpdate.FollowUpDate != "" {
-		if _, err := time.Parse(layout, userInterestUpdate.FollowUpDate); err != nil {
+	if userInterestUpdate.FollowUpDate != nil {
+		if _, err := time.Parse(layout, *userInterestUpdate.FollowUpDate); err != nil {
 			logger.Error("Invalid date format for FollowUpDate", "error", err)
 			return fmt.Errorf("invalid date format for FollowUpDate, expected YYYY-MM-DD")
 		}
 		updateFields["followUpDate"] = userInterestUpdate.FollowUpDate
 	}
 
-	if userInterestUpdate.PreferredInstallationDate != "" {
-		if _, err := time.Parse(layout, userInterestUpdate.PreferredInstallationDate); err != nil {
+	if userInterestUpdate.PreferredInstallationDate != nil {
+		if _, err := time.Parse(layout, *userInterestUpdate.PreferredInstallationDate); err != nil {
 			logger.Error("Invalid date format for PreferredInstallationDate", "error", err)
 			return fmt.Errorf("invalid date format for PreferredInstallationDate, expected YYYY-MM-DD")
 		}
@@ -126,8 +126,8 @@ func UpdateUserInterest(ctx context.Context, id string, userInterestUpdate *mode
 		updateFields["isInstallationAgreed"] = userInterestUpdate.IsInstallationAgreed
 	}
 
-	if userInterestUpdate.InstallationDate != "" {
-		if _, err := time.Parse(layout, userInterestUpdate.InstallationDate); err != nil {
+	if userInterestUpdate.InstallationDate != nil {
+		if _, err := time.Parse(layout, *userInterestUpdate.InstallationDate); err != nil {
 			logger.Error("Invalid date format for InstallationDate", "error", err)
 			return fmt.Errorf("invalid date format for InstallationDate, expected YYYY-MM-DD")
 		}

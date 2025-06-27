@@ -14,7 +14,7 @@ import (
 func UpdateUser(ctx context.Context, userID string, updatedAdmin *models.UpdateAdmin) (*models.Admin, error) {
 	// Initialize the MongoDB collection (replace "users" with your collection name)
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("User")
+	collection := client.Database("practionweb").Collection("User")
 
 	// Create a filter to find the user by their ID
 	filter := bson.M{"_id": userID}

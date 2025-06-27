@@ -40,7 +40,7 @@ func CreateServiceArea(ctx context.Context, serviceArea *models.FeatureCollectio
 func insertServiceAreaIntoDB(ctx context.Context, area *models.FeatureCollection) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("ServiceArea")
+	collection := client.Database("practionweb").Collection("ServiceArea")
 
 	// Insert the user document into the collection
 	_, err := collection.InsertOne(ctx, area)

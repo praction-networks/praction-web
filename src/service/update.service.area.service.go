@@ -20,7 +20,7 @@ func UpdateAreaService(ctx context.Context, updateArea *models.UpdateFeture) err
 
 	// MongoDB client and collection
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("ServiceArea")
+	collection := client.Database("practionweb").Collection("ServiceArea")
 
 	// Fetch the current document to validate duplicates
 	var existingFeatureCollection models.FeatureCollection

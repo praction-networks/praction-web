@@ -13,7 +13,7 @@ import (
 func GetAllUsers(ctx context.Context) ([]models.ResponseAdmin, error) {
 	// Initialize the MongoDB collection (replace "users" with your collection name)
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("User")
+	collection := client.Database("practionweb").Collection("User")
 
 	// Query all users
 	cursor, err := collection.Find(ctx, bson.M{})

@@ -17,7 +17,7 @@ import (
 
 func GetAllBlogCategory(ctx context.Context, params utils.PaginationParams) ([]models.BlogCategory, error) {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("BlogCategory")
+	collection := client.Database("practionweb").Collection("BlogCategory")
 
 	// Build the query filters
 	filter := bson.M{
@@ -59,7 +59,7 @@ func GetAllBlogCategory(ctx context.Context, params utils.PaginationParams) ([]m
 
 func DeleteBlogCategoryByID(ctx context.Context, id primitive.ObjectID) error {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("BlogCategory")
+	collection := client.Database("practionweb").Collection("BlogCategory")
 
 	// Perform the delete operation
 	result, err := collection.DeleteOne(ctx, bson.M{"_id": id})

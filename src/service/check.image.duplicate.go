@@ -14,7 +14,7 @@ import (
 func CheckIfImageExists(imageHash string) (bool, error) {
 	// Get the MongoDB client
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("BlogImage")
+	collection := client.Database("practionweb").Collection("BlogImage")
 
 	// Check if an image with the same hash exists in the database
 	var image models.Image

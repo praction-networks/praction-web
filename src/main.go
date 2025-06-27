@@ -13,7 +13,7 @@ import (
 )
 
 // @title Praction Web APIs Server
-// @version 1.0
+// @version 1.0.1
 // @description This API Server will be used to serve Praction backend API Server
 // @BasePath /
 

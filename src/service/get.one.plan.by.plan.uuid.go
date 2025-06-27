@@ -13,8 +13,8 @@ import (
 
 func GetOnePlanByUUID(ctx context.Context, planID string) (models.PlanSpecific, error) {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Plan")
-	imageCollection := client.Database("uvfiberweb").Collection("Image")
+	collection := client.Database("practionweb").Collection("Plan")
+	imageCollection := client.Database("practionweb").Collection("Image")
 
 	// Query to fetch all plans
 	cursor, err := collection.Find(ctx, bson.M{})

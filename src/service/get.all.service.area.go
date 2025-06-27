@@ -17,7 +17,7 @@ import (
 func GetAllServiceAreaService(ctx context.Context, params utils.PaginationParams) ([]models.FeatureCollection, error) {
 
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("ServiceArea")
+	collection := client.Database("practionweb").Collection("ServiceArea")
 	// Set default pagination values if not provided
 	if params.Page <= 0 {
 		params.Page = 1

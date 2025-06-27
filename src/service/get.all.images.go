@@ -16,7 +16,7 @@ import (
 // GetImageByName checks if an image with the given name exists in the database.
 func GetImageByName(ctx context.Context, name string) error {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Image")
+	collection := client.Database("practionweb").Collection("Image")
 
 	filter := bson.M{"name": name}
 
@@ -39,7 +39,7 @@ func GetImageByName(ctx context.Context, name string) error {
 
 func GetAllImageService(ctx context.Context, params utils.PaginationParams) ([]models.Image, error) {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Image")
+	collection := client.Database("practionweb").Collection("Image")
 
 	// Build the query filter
 	filter := bson.M{

@@ -211,6 +211,16 @@ func LoadRoutes() *chi.Mux {
 			r.Patch("/servicearea/{id}", serviceAreaHandler.UpdateServiceArea)
 			r.Patch("/servicearea/area/{id}", serviceAreaHandler.ModifyServiceArea)
 
+			areaPageHandler := &handler.AreaPageHandler{}
+
+			r.Post("/pagemeta", middlewares.JWTAuthMiddleware(
+				middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(areaPageHandler.CreateAreaPageHandler)),
+			).ServeHTTP)
+
+			r.Get("/pagemeta", areaPageHandler.GetAllPageMetaHandler)
+			r.Delete("/pagemeta/{id}", middlewares.JWTAuthMiddleware(
+				middlewares.RoleAuthMiddleware([]string{"admin", "manager", "user"}, http.HandlerFunc(areaPageHandler.DeletePageMetaByID)),
+			).ServeHTTP)
 		})
 	})
 

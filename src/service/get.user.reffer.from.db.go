@@ -15,7 +15,7 @@ import (
 
 func GetUserDetailsFromDBRefeeral(userData *models.UserOTPResend) (models.UserRefrence, error) {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("UserReferal")
+	collection := client.Database("practionweb").Collection("UserReferal")
 
 	// Context with timeout to avoid indefinite hanging
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

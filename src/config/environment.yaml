@@ -9,10 +9,10 @@ SERVER:
   PORT: 3000
 
 MONGODB:
-  HOST: "mongodb"
+  HOST: "103.83.131.248"
   PORT: 27017
   TLSENABLED: false
-  DATABASE: "uvfiberweb"
+  DATABASE: "practionweb"
   USERNAME: "praction"
   PASSWORD: "Lcmanager123"
 
@@ -41,57 +41,3 @@ CLOUDINARY:
   CLOUDNAME: "djn2liyel"
   APIKEY: "739648923532994"
   APISECRET: "nH11uKbEcvZ8nEt3NbDO5VSeeJM"
-
-services:
-  webapp:
-    image: harbor.praction.in/web/webbackend-praction:latest
-    container_name: webapp
-    environment:
-      - ENV=production
-      - MONGO_URI=mongodb://praction:Lcmanager123@mongodb:27017/practionweb?authSource=practionweb
-    depends_on:
-      - mongodb
-    restart: always
-
-  web-frontend:
-    image: harbor.praction.in/web/web-frontend:latest
-    container_name: web-frontend
-    environment:
-      - NODE_ENV=production
-    restart: always
-
-  uvfiber-web:
-    image: harbor.praction.in/web/uvfiber-web:latest
-    container_name: uvfiber-web
-    environment:
-      - NODE_ENV=production
-    depends_on:
-      - mongodb-uv
-    restart: always
-
-  mongodb:
-    image: mongo:6.0
-    container_name: mongodb
-    restart: always
-    ports:
-      - "27017:27017" # Expose MongoDB for Compass
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=Lcmanager@123
-      - MONGO_INITDB_DATABASE=practionweb
-    volumes:
-      - mongodb_data:/data/db
-      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro
-
-
-
-
-db = db.getSiblingDB("uvfiberweb");
-
-db.createUser({
-  user: "praction",
-  pwd: "Lcmanager123",
-  roles: [
-    { role: "readWrite", db: "uvfiberweb" }
-  ]
-});

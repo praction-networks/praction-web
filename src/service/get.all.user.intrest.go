@@ -17,7 +17,7 @@ import (
 func GetAllIntrestUserService(ctx context.Context, params utils.PaginationParams, db string) ([]models.UserInterest, error) {
 
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection(db)
+	collection := client.Database("practionweb").Collection(db)
 	// Set default pagination values if not provided
 	if params.Page <= 0 {
 		params.Page = 1

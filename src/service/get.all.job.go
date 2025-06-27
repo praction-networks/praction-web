@@ -14,7 +14,7 @@ import (
 
 func GetAllJobs(ctx context.Context) ([]models.Job, error) {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Job")
+	collection := client.Database("practionweb").Collection("Job")
 
 	// Define a slice to store retrieved plans
 	var jobs []models.Job

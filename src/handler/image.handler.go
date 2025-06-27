@@ -48,9 +48,9 @@ func (IU *ImageUploadHandler) UploadImage(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if tag == "" || (tag != "blog" && tag != "ott" && tag != "iptv") {
-		logger.Error("Tag cannot be empty and must be one of: blog, ott, or iptv")
-		response.SendBadRequestError(w, "Tag cannot be empty and must be one of: blog, ott, or iptv")
+	if tag == "" || (tag != "blog" && tag != "ott" && tag != "iptv" && tag != "area") {
+		logger.Error("Tag cannot be empty and must be one of: blog, ott, area, or iptv")
+		response.SendBadRequestError(w, "Tag cannot be empty and must be one of: blog, ott, area or iptv")
 		return
 	}
 
@@ -189,7 +189,7 @@ func (IU *ImageUploadHandler) DeleteImage(w http.ResponseWriter, r *http.Request
 
 	// Get MongoDB client and collection
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Image")
+	collection := client.Database("practionweb").Collection("Image")
 
 	// Find the image document in MongoDB
 	var image models.Image // Assuming the Image model is inside the service package

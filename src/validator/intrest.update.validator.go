@@ -20,7 +20,7 @@ func validateDateFormat(fl validator.FieldLevel) bool {
 }
 
 // ValidateUserInterestUpdate validates the UserInterestUpdate model
-func ValidateUserInterestUpdate(userInterestUpdate *models.UserInterestUpdate) []response.ErrorDetail {
+func ValidateUserInterestUpdate(userInterestUpdate *models.UserInterest) []response.ErrorDetail {
 	var validationErrors []response.ErrorDetail
 
 	// Initialize validator instance

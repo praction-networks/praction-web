@@ -14,7 +14,7 @@ import (
 
 func GetUserDetailsFromDBForPlan(userDara *models.UserOTPPlanResend) (models.AvailableUserRequest, error) {
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("UserPlanIntrest")
+	collection := client.Database("practionweb").Collection("UserPlanIntrest")
 
 	// Context with timeout to avoid indefinite hanging
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -8,196 +8,139 @@ import (
 	"github.com/praction-networks/quantum-ISP365/webapp/src/logger"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/models"
 	"github.com/praction-networks/quantum-ISP365/webapp/src/utils"
+
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
-// PaginationParams represents pagination, filtering, and sorting parameters
+// GetAllBlogService retrieves public blogs with filtering, pagination, and sorting
 func GetAllBlogService(ctx context.Context, params utils.PaginationParams) ([]models.Blog, error) {
-
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Blog")
-	// Set default pagination values if not provided
-	if params.Page <= 0 {
-		params.Page = 1
-	}
-	if params.PageSize <= 0 {
-		params.PageSize = 10
-	}
-	if params.SortField == "" {
-		params.SortField = "createdAt"
-	}
-	if params.SortOrder != 1 && params.SortOrder != -1 {
-		params.SortOrder = -1
-	}
+	collection := client.Database("practionweb").Collection("Blog")
 
-	filter := buildBlogFilters(
-		bson.M{
-			"isApproved": true,
-			"isActive":   true,
-			"isDeleted":  false,
-			"status":     "published",
-		},
-		params.Filters,
-	)
+	// Base filters for public blogs
+	baseFilter := bson.M{
+		"isApproved": true,
+		"isActive":   true,
+		"isDeleted":  false,
+		"status":     "published",
+	}
+	filter := buildBlogFilters(baseFilter, params.Filters)
 
-	// Define find options for pagination and sorting
+	// Options for pagination and sorting
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{Key: params.SortField, Value: params.SortOrder}})
 	findOptions.SetSkip(int64((params.Page - 1) * params.PageSize))
 	findOptions.SetLimit(int64(params.PageSize))
 
-	// Query the collection
+	logger.Info("Querying public blogs", "filter", filter, "sortField", params.SortField, "sortOrder", params.SortOrder)
+
 	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			logger.Info("No blogs found in the database to show.")
+			logger.Info("No public blogs found")
 			return nil, nil
 		}
-		logger.Error(fmt.Sprintf("Error retrieving blogs from the database: %v", err))
-		return nil, fmt.Errorf("error fetching blogs details: %w", err)
+		logger.Error(fmt.Sprintf("Error retrieving blogs: %v", err))
+		return nil, fmt.Errorf("error fetching blogs: %w", err)
 	}
 	defer cursor.Close(ctx)
 
-	// Decode the results into a slice
 	var blogs []models.Blog
 	if err = cursor.All(ctx, &blogs); err != nil {
-		logger.Error(fmt.Sprintf("Error decoding users: %v", err))
-		return nil, fmt.Errorf("error decoding users: %w", err)
+		logger.Error(fmt.Sprintf("Error decoding blogs: %v", err))
+		return nil, fmt.Errorf("error decoding blogs: %w", err)
 	}
 
-	// Fetch comments for each blog based on the Comment IDs
-	// Now we will retrieve the comments for each blog
-	for i, blog := range blogs {
-		// Ensure CommentsList is not empty
-		if len(blog.CommentsList) > 0 {
-			commentCollection := client.Database("uvfiberweb").Collection("BlogComments")
-			commentFilter := bson.M{"_id": bson.M{"$in": blog.CommentsList}}
-
-			// Fetch the comments by ObjectIDs from CommentsList
-			commentCursor, err := commentCollection.Find(ctx, commentFilter)
-			if err != nil {
-				logger.Error(fmt.Sprintf("Error retrieving comments for blog %v: %v", blog.ID, err))
-				return nil, fmt.Errorf("error retrieving comments: %w", err)
-			}
-			defer commentCursor.Close(ctx)
-
-			var comments []models.Comments
-			if err = commentCursor.All(ctx, &comments); err != nil {
-				logger.Error(fmt.Sprintf("Error decoding comments: %v", err))
-				return nil, fmt.Errorf("error decoding comments: %w", err)
-			}
-
-			// Add the comments to the blog's Comments field
-			blogs[i].Comments = comments
-		}
+	// Hydrate comments
+	if err := hydrateBlogComments(ctx, client, blogs); err != nil {
+		return nil, err
 	}
 
-	logger.Info(fmt.Sprintf("Retrieved %d blog(s) successfully with pagination and sorting and filters.", len(blogs)))
+	logger.Info(fmt.Sprintf("Retrieved %d public blog(s)", len(blogs)))
 	return blogs, nil
 }
 
+// GetAdminAllBlogService retrieves all blogs for admin view
 func GetAdminAllBlogService(ctx context.Context, params utils.PaginationParams) ([]models.Blog, error) {
-
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("Blog")
-	// Set default pagination values if not provided
-	if params.Page <= 0 {
-		params.Page = 1
-	}
-	if params.PageSize <= 0 {
-		params.PageSize = 10
-	}
-	if params.SortField == "" {
-		params.SortField = "createdAt"
-	}
-	if params.SortOrder != 1 && params.SortOrder != -1 {
-		params.SortOrder = 1
-	}
+	collection := client.Database("practionweb").Collection("Blog")
 
-	// Build the query filters
-	filter := bson.M{}
+	filter := buildBlogFilters(bson.M{}, params.Filters)
 
-	// Add additional filters for category and tag if present
-	if categories, ok := params.Filters["category"]; ok {
-		// Filter blogs where category matches any of the given values
-		filter["category"] = bson.M{"$in": categories}
-	}
-
-	if tags, ok := params.Filters["tag"]; ok {
-		// Filter blogs where tag matches any of the given values
-		filter["tag"] = bson.M{"$in": tags}
-	}
-
-	for key, value := range params.Filters {
-		filter[key] = value
-	}
-
-	// Define find options for pagination and sorting
+	// Options
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{{Key: params.SortField, Value: params.SortOrder}})
 	findOptions.SetSkip(int64((params.Page - 1) * params.PageSize))
 	findOptions.SetLimit(int64(params.PageSize))
 
-	// Query the collection
+	logger.Info("Querying admin blogs", "filter", filter, "sortField", params.SortField, "sortOrder", params.SortOrder)
+
 	cursor, err := collection.Find(ctx, filter, findOptions)
 	if err != nil {
 		if err == mongo.ErrNoDocuments {
-			logger.Info("No blogs found in the database to show.")
+			logger.Info("No admin blogs found")
 			return nil, nil
 		}
-		logger.Error(fmt.Sprintf("Error retrieving blogs from the database: %v", err))
-		return nil, fmt.Errorf("error fetching blogs details: %w", err)
+		logger.Error(fmt.Sprintf("Error retrieving blogs: %v", err))
+		return nil, fmt.Errorf("error fetching blogs: %w", err)
 	}
 	defer cursor.Close(ctx)
 
-	// Decode the results into a slice
 	var blogs []models.Blog
 	if err = cursor.All(ctx, &blogs); err != nil {
-		logger.Error(fmt.Sprintf("Error decoding users: %v", err))
-		return nil, fmt.Errorf("error decoding users: %w", err)
+		logger.Error(fmt.Sprintf("Error decoding blogs: %v", err))
+		return nil, fmt.Errorf("error decoding blogs: %w", err)
 	}
 
-	// Fetch comments for each blog based on the Comment IDs
-	// Now we will retrieve the comments for each blog
-	for i, blog := range blogs {
-		// Ensure CommentsList is not empty
-		if len(blog.CommentsList) > 0 {
-			commentCollection := client.Database("uvfiberweb").Collection("BlogComments")
-			commentFilter := bson.M{"_id": bson.M{"$in": blog.CommentsList}}
-
-			// Fetch the comments by ObjectIDs from CommentsList
-			commentCursor, err := commentCollection.Find(ctx, commentFilter)
-			if err != nil {
-				logger.Error(fmt.Sprintf("Error retrieving comments for blog %v: %v", blog.ID, err))
-				return nil, fmt.Errorf("error retrieving comments: %w", err)
-			}
-			defer commentCursor.Close(ctx)
-
-			var comments []models.Comments
-			if err = commentCursor.All(ctx, &comments); err != nil {
-				logger.Error(fmt.Sprintf("Error decoding comments: %v", err))
-				return nil, fmt.Errorf("error decoding comments: %w", err)
-			}
-
-			// Add the comments to the blog's Comments field
-			blogs[i].Comments = comments
-		}
+	// Hydrate comments
+	if err := hydrateBlogComments(ctx, client, blogs); err != nil {
+		return nil, err
 	}
 
-	logger.Info(fmt.Sprintf("Retrieved %d blog(s) successfully with pagination and sorting and filters.", len(blogs)))
+	logger.Info(fmt.Sprintf("Retrieved %d admin blog(s)", len(blogs)))
 	return blogs, nil
 }
 
+// buildBlogFilters constructs filters supporting both direct match and $in
 func buildBlogFilters(base bson.M, filters map[string]interface{}) bson.M {
 	for key, value := range filters {
-		switch key {
-		case "category", "tag":
-			base[key] = bson.M{"$in": value}
+		switch v := value.(type) {
+		case []string:
+			base[key] = bson.M{"$in": v}
+		case string:
+			base[key] = v
 		default:
-			base[key] = value
+			base[key] = v
 		}
 	}
 	return base
+}
+
+// hydrateBlogComments attaches comments to each blog
+func hydrateBlogComments(ctx context.Context, client *mongo.Client, blogs []models.Blog) error {
+	commentCollection := client.Database("practionweb").Collection("BlogComments")
+
+	for i, blog := range blogs {
+		if len(blog.CommentsList) == 0 {
+			continue
+		}
+
+		commentFilter := bson.M{"_id": bson.M{"$in": blog.CommentsList}}
+		commentCursor, err := commentCollection.Find(ctx, commentFilter)
+		if err != nil {
+			logger.Error(fmt.Sprintf("Error retrieving comments for blog %v: %v", blog.ID, err))
+			return fmt.Errorf("error retrieving comments: %w", err)
+		}
+		defer commentCursor.Close(ctx)
+
+		var comments []models.Comments
+		if err = commentCursor.All(ctx, &comments); err != nil {
+			logger.Error(fmt.Sprintf("Error decoding comments: %v", err))
+			return fmt.Errorf("error decoding comments: %w", err)
+		}
+		blogs[i].Comments = comments
+	}
+	return nil
 }

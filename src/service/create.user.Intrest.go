@@ -34,7 +34,7 @@ func CreateUserIntrest(ctx context.Context, userIntrest models.UserInterest) err
 func insertUserIntrestIntoDB(ctx context.Context, userIntrest models.UserInterest) error {
 	// Get the MongoDB client from the database package
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("UserIntrest")
+	collection := client.Database("practionweb").Collection("UserIntrest")
 
 	// Insert the user document into the collection
 	_, err := collection.InsertOne(ctx, userIntrest)

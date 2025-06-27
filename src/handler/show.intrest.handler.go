@@ -277,7 +277,7 @@ func (h *UserIntrest) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Parse the request body into a UserInterestUpdate struct
-	var userUpdate models.UserInterestUpdate
+	var userUpdate models.UserInterest
 	if err := json.NewDecoder(r.Body).Decode(&userUpdate); err != nil {
 		logger.Error("Error parsing request body", "error", err)
 		response.SendBadRequestError(w, "Invalid request payload for User Interest update")

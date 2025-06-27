@@ -17,7 +17,7 @@ import (
 func SetUserPassword(ctx context.Context, userID, currentPassword, newPassword string) error {
 	// Initialize the MongoDB collection (replace "users" with your collection name)
 	client := database.GetClient()
-	collection := client.Database("uvfiberweb").Collection("User")
+	collection := client.Database("practionweb").Collection("User")
 
 	// Find the user by their ID
 	var user models.Admin
